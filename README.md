@@ -5,12 +5,32 @@ Service for employee knowledge control .
 
 ## Getting Started
 
-1.Activate virtual environment  
-$venv/bin/activate
+1. Clone the project from the Github repo :
 
-2.Install all the dependencies 
-$pip3 install -r requirements.txt
+````
+git clone https://github.com/khodjiyev2o/Meduzzen
+````
+2. Go to the project directory  
 
+3. Create virtual environment :
+
+````
+python3 -m venv venv
+````
+
+4. Activate virtual environment  : 
+
+````
+source\venv\bin\activate
+
+````
+if you are using Windows ,then :
+````
+venv\Scripts\activate
+````
 
 3.Run the server 
+````
 $ uvicorn main:app --reload
+````
+````--reload```` flag makes the server restart after code changes. Only use for development.
