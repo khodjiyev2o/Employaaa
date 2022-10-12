@@ -1,0 +1,28 @@
+version: '3'
+services:
+  db:
+    image: postgres:latest
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=postgres
+    volumes:
+      - postgresql-data:/var/lib/postgresql/data
+    container_name: postgres
+
+  api:
+    build: .
+    command: uvicorn main:app --port 8080 --host 0.0.0.0 --reload
+    depends_on:
+      - db
+    ports:
+      - 8080:8080
+    restart: on-failure
+    container_name: fastapi
+
+  redis:
+    image: redis:alpine
+    container_name: redis
+
+volumes:
+  postgresql-data:
