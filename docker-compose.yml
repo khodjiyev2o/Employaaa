@@ -22,7 +22,10 @@ services:
 
   redis:
     image: redis:alpine
+    volumes:
+      - redis_data:/data
     container_name: redis
 
 volumes:
   postgresql-data:
+  redis_data:
