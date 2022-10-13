@@ -1,8 +1,8 @@
 from email.policy import default
 from fastapi import FastAPI
-import databases
+
 from fastapi.middleware.cors import CORSMiddleware
-from .database import db
+from database import db
 app = FastAPI()
 
 origins = [
