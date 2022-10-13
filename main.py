@@ -1,7 +1,8 @@
+from email.policy import default
 from fastapi import FastAPI
 import databases
 from fastapi.middleware.cors import CORSMiddleware
-
+from .database import db
 app = FastAPI()
 
 origins = [
@@ -13,13 +14,12 @@ app.add_middleware(
     allow_origins=origins,
     allow_credentials=True,
     allow_methods=["GET"],
-    allow_headers=["*"],
+    allow_headers=["*"]
 )
 
 
-DATABASE_URL = "sqlite:///./main.db"
-db = databases.Database(DATABASE_URL) 
-  
+
+
 @app.on_event("startup")
 async def startup():
     await db.connect()
