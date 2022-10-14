@@ -16,7 +16,7 @@ services:
 
   api:
     build: .
-    command: uvicorn main:app --port 8080 --host 0.0.0.0 --reload
+    command: uvicorn main:app --port ${APP_PORT} --host ${HOST_PORT} --reload
     depends_on:
       - db
     ports:
