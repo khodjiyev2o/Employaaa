@@ -1,5 +1,6 @@
 from pydantic import BaseModel, HttpUrl
-
+from typing import Optional
+from email_validator import validate_email
 
 
 class Image(BaseModel):
@@ -9,8 +10,19 @@ class Image(BaseModel):
 class User(BaseModel):
     id: int
     first_name: str
-    last_name: str
-    phone_number: int | None = None
-    email: str | None = None
-    photo: Image | None = None
+    last_name: Optional[str]
+    phone_number: Optional[int] 
+    email: str 
+    
 
+class UserSignIn(User):
+    email:validate_email
+    password:str
+    
+
+
+class UserSignUp(User):
+    first_name:str
+    email:validate_email
+    password:str
+    phone_number: Optional[int] 

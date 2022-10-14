@@ -10,5 +10,5 @@ class User(Base):
     last_name = Column(String)
     phone_number = Column(Integer)
     email = Column(String,)
-    photo = Column()#No idea what to put here,i made pydantic submodel in schema.py with Image class for this attribute. 
+    
     
