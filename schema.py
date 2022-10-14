@@ -25,4 +25,16 @@ class UserSignUp(User):
     first_name:str
     email:validate_email
     password:str
+    phone_number: Optional[int]
+
+class UserUpdate(User):
+    first_name: Optional[str] 
+    email: Optional[validate_email] 
     phone_number: Optional[int] 
+    
+
+
+
+
+
+ 

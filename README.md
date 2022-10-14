@@ -60,3 +60,21 @@ docker-compose build
 docker-compose up
 
 ```
+
+
+
+
+##How to make migrations using SqlAlchemy:
+
+1.
+
+```
+docker-compose run api alembic revision --autogenerate -m "New Migration"
+```
+##new migrations should have been created in alembic/versions/. folder
+
+2.
+
+```
+docker-compose run api alembic upgrade head
+```
