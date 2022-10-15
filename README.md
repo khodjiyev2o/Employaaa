@@ -48,3 +48,15 @@ docker build -t fastapi .
 docker run -d --name mycontainer -p 8080:8080 fastapi
 
 ```
+
+##How to run an application in docker-compose file :
+
+1.Build and pull  all the necessary images:
+```
+docker-compose build
+```
+2.Run the container based on the images :
+```
+docker-compose up
+
+```
