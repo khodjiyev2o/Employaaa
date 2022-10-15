@@ -32,6 +32,7 @@ class UserSignUp(User):
     first_name:str
     email:validate_email
     password:str
+    confirm_password:str
     phone_number: Optional[int]
 
     class Config:
