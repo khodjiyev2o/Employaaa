@@ -16,9 +16,10 @@ services:
       - practise
 
   pgadmin:
+    platform: linux/amd64
     container_name: pgadmin
     image: dpage/pgadmin4
-    environment:
+    environment:  
       - PGADMIN_DEFAULT_EMAIL=${PGADMIN_EMAIL}
       - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_PASSWORD}
     ports:
@@ -39,7 +40,7 @@ services:
       - db
     ports:
       - ${APP_PORT}:${CONTAINER_PORT}
-    restart: on-failure
+    restart: unless-stopped
     container_name: api
     networks:
       - practise

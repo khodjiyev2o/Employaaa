@@ -1,6 +1,6 @@
 from email.policy import default
 from fastapi import FastAPI
-
+import uvicorn
 from fastapi.middleware.cors import CORSMiddleware
 from database import db
 app = FastAPI()
@@ -33,5 +33,4 @@ async def shutdown():
 @app.get("/")
 async def root():
     return {"status": "working"}
-
 
