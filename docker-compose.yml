@@ -33,7 +33,7 @@ services:
   api:
     platform: linux/amd64
     build: .
-    command: uvicorn main:app --port 8080 --host 0.0.0.0 --reload
+    command: bash -c "alembic upgrade head && uvicorn main:app --port 8080 --host 0.0.0.0 --reload"
     volumes:
       - .:/api
     depends_on:
