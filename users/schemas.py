@@ -38,7 +38,7 @@ class UserSignUp(User):
     class Config:
         orm_mode = True
 
-class UserUpdate(User):
+class UserUpdate(BaseModel):
     first_name: Optional[str] 
     email: Optional[str] 
     phone_number: Optional[int] 

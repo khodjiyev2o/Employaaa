@@ -24,7 +24,8 @@ def get_users(db: Session, skip: int = 0, limit: int = 100):
     if not users :
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail="no users in the database")
-
+    return users 
+    
 def create_user(user:schemas.UserSignUp,db:Session):
     password = hashing.Hash.bcrypt(user.password)
     active_user =  db.query(models.User).filter(models.User.email == user.email).first()
