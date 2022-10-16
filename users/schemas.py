@@ -1,6 +1,7 @@
-from pydantic import BaseModel, HttpUrl
+
 from typing import Optional
 from email_validator import validate_email
+from pydantic import BaseModel, ValidationError, validator,HttpUrl
 
 
 class Image(BaseModel):
@@ -35,6 +36,11 @@ class UserSignUp(User):
     confirm_password:str  
     phone_number: Optional[int]
 
+    @validator('confirm_password')
+    def passwords_match(cls, v, values, **kwargs):
+        if 'password' in values and v != values['password']:
+            raise ValueError('passwords do not match')
+        return v
     class Config:
         orm_mode = True
 
