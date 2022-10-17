@@ -1,6 +1,7 @@
 version: '3'
 services:
   db:
+    platform: linux/amd64
     image: postgres:${POSTGRES_VERSION}
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
@@ -14,19 +15,38 @@ services:
     networks:
       - practise
 
+  pgadmin:
+    platform: linux/amd64
+    container_name: pgadmin
+    image: dpage/pgadmin4
+    environment:  
+      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_EMAIL}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_PASSWORD}
+    ports:
+      - ${PGADMIN_PORT}:80
+    depends_on:
+      - db
+    networks:
+      - practise
+  
+  
   api:
+    platform: linux/amd64
     build: .
     command: uvicorn main:app --port ${APP_PORT} --host ${HOST_PORT} --reload
+    volumes:
+      - .:/api
     depends_on:
       - db
     ports:
       - ${APP_PORT}:${CONTAINER_PORT}
-    restart: on-failure
-    container_name: fastapi
+    restart: unless-stopped
+    container_name: api
     networks:
       - practise
 
   redis:
+    platform: linux/amd64
     image: redis:${REDIS_VERSION}
     volumes:
       - redis_data:/data
