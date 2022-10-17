@@ -3,20 +3,20 @@ from users import database,schemas,crud,models
 from sqlalchemy.orm import Session
 from fastapi import HTTPException,status
 from users.hashing import Hash
-from utils import VerifyToken
 from fastapi.security import HTTPBearer
+from utils import Token
 router = APIRouter(
      tags=["authentication"],
 )
 token_auth_scheme = HTTPBearer()
 
+
 @router.post("/login")
-def login(
-    response:Response,
+def login(response:Response,
     request : schemas.UserSignIn,
     token:str = Depends(token_auth_scheme),
     db:Session = Depends(database.get_db
-    ))->models.User:
+    ))->schemas.User:
 
     user = db.query(models.User).filter(models.User.email == request.email).first()
     if not user :
@@ -26,12 +26,11 @@ def login(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"Invalid password")
 
-    ## generate jwt token and return
-    result =VerifyToken(token.credentials).verify() 
-    if result.get("status"):
-        response.status_code = status.HTTP_400_BAD_REQUEST
-        resp = f"{response}does not match the token"
-        return resp
-
-    return user
+    ## verify the token
+    if Token.access_token == token:
+        return user    
+    else:
+        raise  HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f"Invalid access_token") 
+    
     
