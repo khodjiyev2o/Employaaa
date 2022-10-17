@@ -8,28 +8,28 @@ class Crud():
     def __init__(self,db: Session):
         self.db = db
 
-    def get_user_by_id(self,id:int):
+    def get_user_by_id(self,id:int)->schemas.User:
         user = self.db.query(models.User).filter(models.User.id == id).first()
         if not user:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                                 detail=f"User with the id {id} is not available")
         return  user
 
-    def get_user_by_email(self,user_email: str ):
+    def get_user_by_email(self,user_email: str )->schemas.User:
         user = self.db.query(models.User).filter(models.User.email == user_email).first()
         if not user:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                                 detail=f"User with the email {user_email} is not available")
         return user
     
-    def get_users(self, skip: int = 0, limit: int = 100):
+    def get_users(self, skip: int = 0, limit: int = 100)->schemas.User:
         users = self.db.query(models.User).offset(skip).limit(limit).all()
         if not users :
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                                 detail="no users in the database")
         return users 
         
-    def create_user(self,user:schemas.UserSignUp):
+    def create_user(self,user:schemas.UserSignUp)->schemas.User:
         password = hashing.Hash.bcrypt(user.password)
         active_user =  self.db.query(models.User).filter(models.User.email == user.email).first()
         if not active_user: 
@@ -60,7 +60,7 @@ class Crud():
         return 'done'
 
 
-    def update(self,id:int,request:schemas.UserUpdate):
+    def update(self,id:int,request:schemas.UserUpdate)->schemas.User:
         user = self.db.query(models.User).filter(models.User.id == id)
 
         if not user.first():
