@@ -12,8 +12,6 @@ metadata = sqlalchemy.MetaData()
 DATABASE_URL = os.environ.get("DATABASE_URL")
 
 
-
-
 db = databases.Database(DATABASE_URL)
 
 engine = create_engine(

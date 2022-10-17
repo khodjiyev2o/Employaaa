@@ -17,11 +17,12 @@ class User(BaseModel):
     last_name: Optional[str]
     phone_number: Optional[int] 
     email: str
+    password: str
     
     class Config:
         orm_mode = True
 
-class UserSignIn(User):
+class UserSignIn(BaseModel):
     email:str
     password:str
 
