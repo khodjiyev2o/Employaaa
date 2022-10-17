@@ -66,4 +66,4 @@ def update(id:int,request:schemas.UserUpdate, db:Session):
 
     user.update(request)
     db.commit()
-    return 'updated'
+    return user
