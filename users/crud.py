@@ -29,6 +29,7 @@ class Crud():
                                 detail="no users in the database")
         return users 
         
+    
     def create_user(self,user:schemas.UserSignUp)->schemas.User:
         password = hashing.Hash.bcrypt(user.password)
         active_user =  self.db.query(models.User).filter(models.User.email == user.email).first()
@@ -46,9 +47,9 @@ class Crud():
         else:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
                 detail=f"User with the email {user.email} already exists")
-        
+                
 
-    def destroy(self,id:int):
+    def destroy(self,id:int)->str:
         user = self.db.query(models.User).filter(models.User.id == id)
 
         if not user.first():

@@ -22,10 +22,10 @@ get_db = database.get_db
 
 
 
-@router.post('/create_users',response_model=schemas.User)
-def create_user(request: schemas.UserSignUp,db: Session = Depends(get_db))->schemas.User:
+@router.post('/create_users')
+async def create_user(request: schemas.UserSignUp,db: Session = Depends(get_db))->schemas.User:
     crud = Crud(db=db)
-    return crud.create_user(request)
+    return  crud.create_user(request)
 
 @router.put('/{id}',response_model=schemas.User,status_code=status.HTTP_202_ACCEPTED)
 def update(id:int, request: schemas.UserUpdate, db: Session = Depends(get_db))->schemas.User:
@@ -33,7 +33,7 @@ def update(id:int, request: schemas.UserUpdate, db: Session = Depends(get_db))->
     return crud.update(id=id,request=request)
 
 @router.delete('/{id}',status_code=status.HTTP_204_NO_CONTENT)
-def destroy(id:int, db: Session = Depends(get_db)):
+def destroy(id:int, db: Session = Depends(get_db))->str:
     crud = Crud(db=db)
     return crud.destroy(id=id)
 
@@ -50,7 +50,7 @@ def get_user(id:int,db: Session = Depends(get_db))->schemas.User:
     return crud.get_user_by_id(id)   
 
 
-#
+
 @router.get('/',response_model=Page[schemas.User])
 @router.get("/limit-offset",response_model=LimitOffsetPage[schemas.User])
 def all(db: Session = Depends(get_db))->schemas.User:

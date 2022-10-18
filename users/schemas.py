@@ -13,7 +13,7 @@ class Image(BaseModel):
 
 class User(BaseModel):
     id: int
-    first_name: str
+    first_name: Optional[str]
     last_name: Optional[str]
     phone_number: Optional[int] 
     email: str
@@ -21,7 +21,7 @@ class User(BaseModel):
     class Config:
         orm_mode = True
 
-class UserSignIn(User):
+class UserSignIn(BaseModel):
     email:str
     password:str
 
@@ -29,8 +29,8 @@ class UserSignIn(User):
         orm_mode = True
 
 
-class UserSignUp(User):
-    first_name:str
+class UserSignUp(BaseModel):
+    first_name:Optional[str]
     email:str
     password:str
     confirm_password:str  
