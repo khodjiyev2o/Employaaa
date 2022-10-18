@@ -20,6 +20,7 @@ auth_handler = AuthHandler()
 def login(
     request : schemas.UserSignIn,
     db:Session = Depends(database.get_db),
+
     )->schemas.User:
 
     user = db.query(models.User).filter(models.User.email == request.email).first()
@@ -34,7 +35,7 @@ def login(
     ## encode the token
     token = auth_handler.encode_token(request.email)
     
-    return user 
+    return token 
  
 
     
