@@ -1,13 +1,16 @@
-from fastapi import APIRouter,Depends,Response
-from users import database,schemas,crud,models
+##importd from other modules
+from fastapi import APIRouter,Depends,Response,HTTPException,status
 from sqlalchemy.orm import Session
-from fastapi import HTTPException,status
-from users.hashing import Hash
+from fastapi import Depends, FastAPI, Response, status  
 from fastapi.security import HTTPBearer
-from utils import Token
+
+
+##imports from my modules
+from users import database,schemas,crud,models
+from users.hashing import Hash
 from users.auth import AuthHandler
-import os
 from users.crud import Crud
+from utils import VerifyToken 
 
 
 router = APIRouter(
@@ -17,10 +20,10 @@ token_auth_scheme = HTTPBearer()
 auth_handler = AuthHandler()
 
 @router.post("/login")
-def login(
+def login(response: Response,
     request : schemas.UserSignIn,
+    token: str = Depends(token_auth_scheme),
     db:Session = Depends(database.get_db),
-
     )->schemas.User:
 
     user = db.query(models.User).filter(models.User.email == request.email).first()
@@ -32,9 +35,13 @@ def login(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"Invalid password")
     
+    result = VerifyToken(token.credentials).verify()
+    if result.get("status"):
+       response.status_code = status.HTTP_400_BAD_REQUEST
+       return result
     ## encode the token
     token = auth_handler.encode_token(request.email)
-    
+    #returns the generated token from user's email
     return token 
  
 
