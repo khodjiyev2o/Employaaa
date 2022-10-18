@@ -22,7 +22,7 @@ class Crud():
                                 detail=f"User with the email {user_email} is not available")
         return user
     
-    def get_users(self, skip: int = 0, limit: int = 100)->schemas.User:
+    def get_users(self, skip: int = 0, limit: int = 10)->schemas.User:
         users = self.db.query(models.User).offset(skip).limit(limit).all()
         if not users :
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,

@@ -1,9 +1,10 @@
 from fastapi import APIRouter,Depends,HTTPException,status
-
+from fastapi_pagination import Page
 from users import database,schemas,crud ,models
-
+from fastapi_pagination import Page,LimitOffsetPage,paginate,add_pagination
 from sqlalchemy.orm import Session
 from users.crud import Crud
+
 router = APIRouter()
 
 router = APIRouter(
@@ -49,8 +50,10 @@ def get_user(id:int,db: Session = Depends(get_db))->schemas.User:
     return crud.get_user_by_id(id)   
 
 
-
-@router.get('/')
+#
+@router.get('/',response_model=Page[schemas.User])
+@router.get("/limit-offset",response_model=LimitOffsetPage[schemas.User])
 def all(db: Session = Depends(get_db))->schemas.User:
     crud = Crud(db=db)
-    return crud.get_users()
+    return paginate(crud.get_users())
+add_pagination(router)
