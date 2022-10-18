@@ -5,32 +5,37 @@ from fastapi import HTTPException,status
 from users.hashing import Hash
 from fastapi.security import HTTPBearer
 from utils import Token
+from users.auth import AuthHandler
+import os
+from users.crud import Crud
+
+
 router = APIRouter(
-     tags=["authentication"],
+     tags=["authentication"]
 )
 token_auth_scheme = HTTPBearer()
-
+auth_handler = AuthHandler()
 
 @router.post("/login")
-def login(response:Response,
+def login(
     request : schemas.UserSignIn,
-    token:str = Depends(token_auth_scheme),
-    db:Session = Depends(database.get_db
-    ))->schemas.User:
+    db:Session = Depends(database.get_db),
+    )->schemas.User:
 
     user = db.query(models.User).filter(models.User.email == request.email).first()
     if not user :
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                            detail=f"Invalid email")
+        crud = Crud(db=db)
+        return crud.create_user(request)
+
     if not Hash.verify(user.password,request.password):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"Invalid password")
+    
+    ## encode the token
+    token = auth_handler.encode_token(request.email)
+    
+    return user 
+ 
 
-    ## verify the token
-    if Token.access_token == token:
-        return user    
-    else:
-        raise  HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                            detail=f"Invalid access_token") 
     
     
