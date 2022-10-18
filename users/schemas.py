@@ -34,7 +34,11 @@ class UserSignUp(User):
     first_name:Optional[str]
     email:str
     password:str
+<<<<<<< HEAD:users/schemas.py
     confirm_password:str  
+=======
+    confirm_password:str
+>>>>>>> 754d8bb2f3d4eedac68fb4fb964c1716fbec3675:schema.py
     phone_number: Optional[int]
 
     @validator('confirm_password')
