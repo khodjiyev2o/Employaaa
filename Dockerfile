@@ -1,6 +1,6 @@
 
 FROM --platform=linux/amd64 python:3.9.7
-WORKDIR /app
+WORKDIR /api
 
 COPY requirements.txt ./
 

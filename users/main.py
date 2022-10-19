@@ -2,7 +2,7 @@ from email.policy import default
 from fastapi import FastAPI
 
 from fastapi.middleware.cors import CORSMiddleware
-from users.database import db
+from database import db
 from routers import users
 app = FastAPI()
 
