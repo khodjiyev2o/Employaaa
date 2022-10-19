@@ -10,7 +10,7 @@ from users import database,schemas,crud,models
 from users.hashing import Hash
 from users.auth import AuthHandler
 from users.crud import Crud
-from utils import VerifyToken 
+
 
 
 router = APIRouter(
@@ -22,7 +22,6 @@ auth_handler = AuthHandler()
 @router.post("/login")
 def login(response: Response,
     request : schemas.UserSignIn,
-    token: str = Depends(token_auth_scheme),
     db:Session = Depends(database.get_db),
     )->schemas.User:
 
@@ -35,10 +34,7 @@ def login(response: Response,
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"Invalid password")
     
-    result = VerifyToken(token.credentials).verify()
-    if result.get("status"):
-       response.status_code = status.HTTP_400_BAD_REQUEST
-       return result
+   
     ## encode the token
     token = auth_handler.encode_token(request.email)
     #returns the generated token from user's email

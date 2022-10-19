@@ -22,9 +22,8 @@ get_db = database.get_db
 
 
 
-
 @router.post('/create_users',response_model=schemas.User)
-def create_user(request: schemas.UserSignUp,db: Session = Depends(get_db))->schemas.User:
+def create_user(request: schemas.UserSignUp,db: Session = Depends(get_db),user_email=Depends(auth_handler.auth_wrapper))->schemas.User:
     crud = Crud(db=db)
     return crud.create_user(request)
 
