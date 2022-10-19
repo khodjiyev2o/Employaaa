@@ -46,7 +46,6 @@ class UserSignUp(BaseModel):
 
 class UserUpdate(BaseModel):
     first_name: Optional[str] 
-    email: Optional[str] 
     phone_number: Optional[int] 
     
     class Config:
