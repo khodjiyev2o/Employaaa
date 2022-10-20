@@ -32,7 +32,6 @@ async def create_user(user: schemas.UserSignUp)->schemas.User:
 @router.put("/update/{id}", response_model=schemas.User)
 async def get_user_by_id(id: int,user:schemas.UserUpdate)->schemas.User:
     crud = Crud(get_db)
-    db_user = await crud.get_user_by_id(id=id)
     return await crud.update_user(user=user,id=id)
 
 
