@@ -1,12 +1,13 @@
 from datetime import datetime
 from sqlalchemy.orm import Session
-from . import models,schemas
+
+from schemas import users as schemas
 from typing import List
 from fastapi import HTTPException,status
 from users import hashing
 from .database import database
-from .models import users
-from . import schemas
+from models.users import users
+
 
 class Crud():
         def __init__(self,db:Session):

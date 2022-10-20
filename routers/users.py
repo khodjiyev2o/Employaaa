@@ -1,8 +1,10 @@
 from fastapi import APIRouter,Depends,HTTPException,status
 from typing import  List
-from users import database,schemas,models
+from schemas import users as schemas
+from users import database
 from sqlalchemy.orm import Session
 from users.crud import Crud
+from models import users
 
 router = APIRouter()
 
@@ -30,7 +32,7 @@ async def create_user(user: schemas.UserSignUp)->schemas.User:
 
 
 @router.put("/update/{id}", response_model=schemas.User)
-async def get_user_by_id(id: int,user:schemas.UserUpdate)->schemas.User:
+async def update_user(id: int,user:schemas.UserUpdate)->schemas.User:
     crud = Crud(get_db)
     return await crud.update_user(user=user,id=id)
 
