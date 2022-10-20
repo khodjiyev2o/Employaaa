@@ -57,9 +57,7 @@ class Crud():
                  raise HTTPException(status_code=404, detail=f"User with id {id} not found")
             query = users.delete().where(users.c.id == id)
             await database.execute(query)
-            if user:
-                raise HTTPException(status_code=200, detail=f"User with id {id} has not been deleted")
-            return {f"User with id {id} is successfully deleted"}
+            return HTTPException(status_code=200, detail=f"User with id {id} has been deleted")
 
 
         async def get_all_users(self,skip: int = 0, limit: int = 100)->List[schemas.User]:
