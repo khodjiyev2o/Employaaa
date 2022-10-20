@@ -3,15 +3,15 @@ from fastapi import APIRouter,Depends,Response,HTTPException,status
 from sqlalchemy.orm import Session
 from fastapi import Depends, FastAPI, Response, status  
 from fastapi.security import HTTPBearer
-from models import users
-from schemas import users
+from models.users import User
+from schemas import users as schemas
 
 
 ##imports from my modules
-from users import database,crud
+from users import database
 from users.hashing import Hash
-from users.auth import AuthHandler
-from users.crud import Crud
+from authentication.auth import AuthHandler
+
 
 
 
@@ -23,12 +23,13 @@ auth_handler = AuthHandler()
 
 @router.post("/login")
 def login(response: Response,
-    request : users.UserSignIn,
+    request : schemas.UserSignIn,
     db:Session = Depends(database.get_db),
-    )->users.User:
+    )->str:
 
-    user = db.query(users.User).filter(users.User.email == request.email).first()
-
+    user = db.query(User).filter(User.email == request.email).first()
+    if user is None:
+                 raise HTTPException(status_code=404, detail="User not found")
     if not Hash.verify(user.password,request.password):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"Invalid password")

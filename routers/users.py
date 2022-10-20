@@ -2,10 +2,11 @@ from fastapi import APIRouter,Depends,HTTPException,status
 from typing import  List
 from schemas import users as schemas
 from users import database
-from sqlalchemy.orm import Session
 from users.crud import Crud
-from models import users
+from authentication.auth import AuthHandler
 
+
+auth_handler = AuthHandler()
 router = APIRouter()
 
 router = APIRouter(
@@ -19,7 +20,7 @@ get_db = database.get_db
 
 
 @router.get("/all/", response_model=List[schemas.User])
-async def get_all_users(skip: int = 0, limit: int = 100)->List[schemas.User]:
+async def get_all_users(skip: int = 0, limit: int = 100,user_email=Depends(auth_handler.auth_wrapper))->List[schemas.User]:
     crud = Crud(get_db)
     return await crud.get_all_users(skip=skip, limit=limit)
 
@@ -32,14 +33,14 @@ async def create_user(user: schemas.UserSignUp)->schemas.User:
 
 
 @router.put("/update/{id}", response_model=schemas.User)
-async def update_user(id: int,user:schemas.UserUpdate)->schemas.User:
+async def update_user(id: int,user:schemas.UserUpdate,user_email=Depends(auth_handler.auth_wrapper))->schemas.User:
     crud = Crud(get_db)
     return await crud.update_user(user=user,id=id)
 
 
 
-@router.get("/{id}", response_model=schemas.User)
-async def get_user_by_id(id: int)->schemas.User:
+@router.get("/{id}", response_model=schemas.User,)
+async def get_user_by_id(id: int,user_email=Depends(auth_handler.auth_wrapper))->schemas.User:
     crud = Crud(get_db)
     db_user = await crud.get_user_by_id(id=id)
     return db_user
@@ -47,7 +48,7 @@ async def get_user_by_id(id: int)->schemas.User:
 
 
 @router.get("/{email}/",response_model=schemas.User)
-async def get_user_by_email(email: str)->schemas.User:
+async def get_user_by_email(email: str,user_email=Depends(auth_handler.auth_wrapper))->schemas.User:
     crud = Crud(get_db)
     db_user = await crud.get_user_by_email(email=email)
     if db_user is None:
@@ -55,7 +56,7 @@ async def get_user_by_email(email: str)->schemas.User:
     return db_user
 
 @router.delete("/delete/{id}")
-async def delete(id: int,user:schemas.User)->str:
+async def delete(id: int,user:schemas.User,user_email=Depends(auth_handler.auth_wrapper))->str:
     crud = Crud(get_db)
     db_user = await crud.get_user_by_id(id=id)
     if db_user is None:
