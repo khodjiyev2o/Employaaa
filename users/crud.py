@@ -26,7 +26,7 @@ class Crud():
         async def get_user_by_email(self,email: str)->schemas.User:
             user = await database.fetch_one(users.select().where(users.c.email == email))
             if user is None:
-                 raise HTTPException(status_code=404, detail="User not found")
+                 raise HTTPException(status_code=404, detail=f"User with email {email} not found")
             return user
             
         
@@ -39,17 +39,17 @@ class Crud():
 
         async def update_user(self,id:int,user:schemas.UserUpdate)->schemas.User:
             now = datetime.utcnow()
-            user = await database.fetch_one(users.select().where(users.c.id == id))
-            if user is None:
+            password = hashing.Hash.bcrypt(user.password)
+            active_user = await database.fetch_one(users.select().where(users.c.id == id))
+            if active_user is None:
                  raise HTTPException(status_code=404, detail=f"User with id {id} not found")
             query = users.update().where(users.c.id == id).values(
             first_name = user.first_name,
-            phone_number=user.phone_number,
+            password=password,
             updated_at=now,
             )
             await database.execute(query)
-
-            return schemas.User(**user.dict(),id=id)
+            return await self.get_user_by_id(id=id)
 
         async def delete_user(self,id:int)->HTTPException:
             user = await database.fetch_one(users.select().where(users.c.id == id))
