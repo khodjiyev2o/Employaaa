@@ -51,7 +51,7 @@ class Crud():
 
             return schemas.User(**user.dict(),id=id)
 
-        async def delete_user(self,id:int)->str:
+        async def delete_user(self,id:int)->HTTPException:
             user = await database.fetch_one(users.select().where(users.c.id == id))
             if user is None:
                  raise HTTPException(status_code=404, detail=f"User with id {id} not found")
