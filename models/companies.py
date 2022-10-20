@@ -1,13 +1,13 @@
 from sqlalchemy import Column, DateTime,Integer, String,ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.sql import func
-
+from .users import users
 
 
 Base = declarative_base()
 
 class Company(Base):
-    __tablename__ = "users"
+    __tablename__ = "companies"
     id = Column(Integer, primary_key=True, index=True,unique=True)
     owner_id  = Column(Integer, ForeignKey('users.id'))
     name = Column(String)
