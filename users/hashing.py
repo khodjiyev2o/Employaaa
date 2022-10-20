@@ -8,3 +8,5 @@ class Hash():
 
     def verify(hashed_password,plain_password):
         return pwd_cxt.verify(plain_password,hashed_password)
+
+        

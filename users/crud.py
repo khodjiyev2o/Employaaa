@@ -1,73 +1,65 @@
+from datetime import datetime
 from sqlalchemy.orm import Session
-from . import models,schemas
 
+from schemas import users as schemas
+from typing import List
 from fastapi import HTTPException,status
 from users import hashing
+from .database import database
+from models.users import users
+
 
 class Crud():
-    def __init__(self,db: Session):
-        self.db = db
+        def __init__(self,db:Session):
+            self.db = db
 
-    def get_user_by_id(self,id:int)->schemas.User:
-        user = self.db.query(models.User).filter(models.User.id == id).first()
-        if not user:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                                detail=f"User with the id {id} is not available")
-        return  user
-
-    def get_user_by_email(self,user_email: str )->schemas.User:
-        user = self.db.query(models.User).filter(models.User.email == user_email).first()
-        if not user:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                                detail=f"User with the email {user_email} is not available")
-        return user
-    
-    def get_users(self, skip: int = 0, limit: int = 10)->schemas.User:
-        users = self.db.query(models.User).offset(skip).limit(limit).all()
-        if not users :
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                                detail="no users in the database")
-        return users 
+        async def create_user(self,user: schemas.UserSignUp)->schemas.User:
+            active_user =  await database.fetch_one(users.select().where(users.c.email == user.email))
+            if active_user:
+                raise HTTPException(status_code=400, detail="Email already registered")
+            password = hashing.Hash.bcrypt(user.password)
+            db_user = users.insert().values(email=user.email, password=password)
+            user_id = await database.execute(db_user)
+            return schemas.User(**user.dict(),id=user_id)
         
-    
-    def create_user(self,user:schemas.UserSignUp)->schemas.User:
-        password = hashing.Hash.bcrypt(user.password)
-        active_user =  self.db.query(models.User).filter(models.User.email == user.email).first()
-        if not active_user: 
-            db_user = models.User(
-                first_name=user.first_name,
-                email=user.email,
-                password=password,
-                phone_number=user.phone_number
-                )
-            self.db.add(db_user)
-            self.db.commit()
-            self.db.refresh(db_user)
-            return db_user
-        else:
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"User with the email {user.email} already exists")
-                
+                    
+        async def get_user_by_email(self,email: str)->schemas.User:
+            user = await database.fetch_one(users.select().where(users.c.email == email))
+            if user is None:
+                 raise HTTPException(status_code=404, detail="User not found")
+            return user
+            
+        
 
-    def destroy(self,id:int)->str:
-        user = self.db.query(models.User).filter(models.User.id == id)
+        async def get_user_by_id(self,id: int)->schemas.User:
+            user = await database.fetch_one(users.select().where(users.c.id == id))
+            if user is None:
+                 raise HTTPException(status_code=404, detail=f"User with id {id} not found")
+            return user
 
-        if not user.first():
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                                detail=f"User with id {id} not found")
+        async def update_user(self,id:int,user:schemas.UserUpdate)->schemas.User:
+            now = datetime.utcnow()
+            user = await database.fetch_one(users.select().where(users.c.id == id))
+            if user is None:
+                 raise HTTPException(status_code=404, detail=f"User with id {id} not found")
+            query = users.update().where(users.c.id == id).values(
+            first_name = user.first_name,
+            phone_number=user.phone_number,
+            updated_at=now,
+            )
+            await database.execute(query)
 
-        user.delete(synchronize_session=False)
-        self.db.commit()
-        return 'done'
+            return schemas.User(**user.dict(),id=id)
+
+        async def delete_user(self,id:int)->HTTPException:
+            user = await database.fetch_one(users.select().where(users.c.id == id))
+            if user is None:
+                 raise HTTPException(status_code=404, detail=f"User with id {id} not found")
+            query = users.delete().where(users.c.id == id)
+            await database.execute(query)
+            return HTTPException(status_code=200, detail=f"User with id {id} has been deleted")
 
 
-    def update(self,id:int,request:schemas.UserUpdate)->schemas.User:
-        user = self.db.query(models.User).filter(models.User.id == id)
-
-        if not user.first():
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                                detail=f"User with id {id} not found")
-
-        user.update(request)
-        self.db.commit()
-        return user
+        async def get_all_users(self,skip: int = 0, limit: int = 100)->List[schemas.User]:
+            results = await database.fetch_all(users.select().offset(skip).limit(limit))
+            return [schemas.User(**result) for result in results]
