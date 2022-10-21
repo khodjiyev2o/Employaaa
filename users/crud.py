@@ -81,3 +81,40 @@ class Company_Crud():
             new_company = companies.insert().values(name=company.name,owner_id=user.id)
             company_id = await database.execute(new_company)
             return company_schemas.Company(**company.dict(),id=company_id,owner_id=user.id)
+
+
+        async def update_company(self,id:int,company: company_schemas.CompanyUpdate)->company_schemas.Company:
+            active_company =  await database.fetch_one(companies.select().where(companies.c.id == id))
+            if not active_company:
+                raise HTTPException(status_code=400, detail="Company with  id {id} does not exist")
+            
+            query = companies.update().where(
+                companies.c.id == id).values(
+            visible = company.visible,
+            name = company.name,
+            description=company.description,
+            )
+            await database.execute(query)
+            return await self.get_company_by_id(id=id)
+
+
+        async def get_company_by_name(self,name: str)->company_schemas.Company:
+            company = await database.fetch_one(companies.select().where(companies.c.name == name))
+            if company is None:
+                 raise HTTPException(status_code=404, detail=f"Company with name {name} not found")
+            return company
+
+        async def get_company_by_id(self,id: int)->company_schemas.Company:
+            company = await database.fetch_one(companies.select().where(companies.c.id == id))
+            if company is None:
+                 raise HTTPException(status_code=404, detail=f"Company with name {id} not found")
+            return company
+
+
+        async def delete_company(self,id:int)->HTTPException:
+            company = await database.fetch_one(companies.select().where(companies.c.id == id))
+            if company is None:
+                 raise HTTPException(status_code=404, detail=f"Company with id {id} not found")
+            query = companies.delete().where(companies.c.id == id)
+            await database.execute(query)
+            return HTTPException(status_code=200, detail=f"Company with id {id} has been deleted")

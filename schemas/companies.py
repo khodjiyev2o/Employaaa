@@ -27,6 +27,7 @@ class CompanyCreate(BaseModel):
 class CompanyUpdate(BaseModel):
     name: Optional[str]
     description: Optional[str] 
+    visible:Optional[bool] 
 
     class Config:
         orm_mode = True

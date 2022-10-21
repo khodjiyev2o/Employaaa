@@ -59,7 +59,7 @@ async def get_user_by_email(email: str,user_email=Depends(auth_handler.auth_wrap
     return db_user
 
 @router.delete("/delete/{id}")
-async def delete(id: int,user:schemas.User,current_user_email=Depends(auth_handler.get_current_user))->str:
+async def delete(id: int,user:schemas.User,current_user_email=Depends(auth_handler.get_current_user))->HTTPException:
     crud = Crud(get_db)
     current_user = await crud.get_user_by_email(email=current_user_email)
     if current_user.id != id :
