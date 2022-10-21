@@ -31,6 +31,7 @@ class UserSignIn(BaseModel):
 
 class UserSignUp(BaseModel):
     first_name:Optional[str]
+    last_name:Optional[str]
     email:str
     password:str
     confirm_password:str  

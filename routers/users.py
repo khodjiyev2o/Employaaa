@@ -32,9 +32,12 @@ async def create_user(user: schemas.UserSignUp)->schemas.User:
     return await crud.create_user(user=user)
 
 
-@router.put("/update/{id}", response_model=schemas.User)
-async def update_user(id: int,user:schemas.UserUpdate,user_email=Depends(auth_handler.auth_wrapper))->schemas.User:
+@router.patch("/update/{id}",response_model=schemas.User)
+async def update_user(id: int,user:schemas.UserUpdate,current_user_email=Depends(auth_handler.get_current_user))->schemas.User:
     crud = Crud(get_db)
+    current_user = await crud.get_user_by_email(email=current_user_email)
+    if current_user.id != id :
+        raise  HTTPException(status_code=403, detail="User is not authorized to update another user's account!")
     return await crud.update_user(user=user,id=id)
 
 
@@ -56,12 +59,14 @@ async def get_user_by_email(email: str,user_email=Depends(auth_handler.auth_wrap
     return db_user
 
 @router.delete("/delete/{id}")
-async def delete(id: int,user:schemas.User,user_email=Depends(auth_handler.auth_wrapper))->str:
+async def delete(id: int,user:schemas.User,current_user_email=Depends(auth_handler.get_current_user))->str:
     crud = Crud(get_db)
-    db_user = await crud.get_user_by_id(id=id)
-    if db_user is None:
-        raise HTTPException(status_code=404, detail="User not found")    
+    current_user = await crud.get_user_by_email(email=current_user_email)
+    if current_user.id != id :
+        raise  HTTPException(status_code=403, detail="User is not authorized to delete another user's account!")
     return await crud.delete_user(id=id)
+    
+
 
 
 
