@@ -1,8 +1,8 @@
 from fastapi import APIRouter,Depends,HTTPException,status
 from typing import  List
 from schemas import users as schemas
-from users import database
-from users.crud import Crud
+from database import database
+from users.crud import User_Crud as Crud
 from authentication.auth import AuthHandler
 
 

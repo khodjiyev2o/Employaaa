@@ -1,6 +1,6 @@
 from xmlrpc.client import Boolean
 import jwt
-from fastapi import HTTPException, Security, Response, status ,Depends
+from fastapi import HTTPException, Security, Response, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from passlib.context import CryptContext
 from datetime import datetime, timedelta
@@ -8,10 +8,9 @@ import os
 from dotenv import load_dotenv
 from fastapi.security import HTTPBearer
 from .utils import VerifyToken
-from fastapi.security import OAuth2PasswordBearer
-from users.database import database
-from models.users import users
-from schemas import users as schemas
+from database.database import database
+from database.models import users
+
 
 
 

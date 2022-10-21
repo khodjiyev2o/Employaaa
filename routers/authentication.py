@@ -1,14 +1,14 @@
 ##importd from other modules
 from fastapi import APIRouter,Depends,Response,HTTPException,status
 from sqlalchemy.orm import Session
-from fastapi import Depends, FastAPI, Response, status  
+from fastapi import Depends, Response, status  
 from fastapi.security import HTTPBearer
-from models.users import User
+from database.models import User
 from schemas import users as schemas
 
 
 ##imports from my modules
-from users import database
+from database import database
 from users.hashing import Hash
 from authentication.auth import AuthHandler
 

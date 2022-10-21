@@ -1,15 +1,14 @@
-from email.policy import default
 from typing import Optional,List
-from pydantic import BaseModel, ValidationError, validator,HttpUrl
-from .users import User
+from pydantic import BaseModel
+
 
 class Company(BaseModel):
     id: int
     owner_id: int
     name: str
     description: Optional[str]
-    super_users:Optional(List[User])
-    members: Optional(List[User])
+    supe_users: Optional[List[int]]
+    members: Optional[List[int]]
     visible:bool = True
     
     class Config:
@@ -17,9 +16,8 @@ class Company(BaseModel):
 
 
 class CompanyCreate(BaseModel):
-      id: int
-      owner_id: int
       name: str
+      description: Optional[str]
 
       class Config:
         orm_mode = True
@@ -33,12 +31,10 @@ class CompanyUpdate(BaseModel):
     class Config:
         orm_mode = True
 
-class CompanyOut(CompanyCreate):
-    super_users:Optional(List[User])
-    members: Optional(List[User])
 
-    class Config:
-        orm_mode = True
+
+
+
 
 
 
