@@ -33,6 +33,21 @@ class Company(Base):
     created_at = Column(DateTime(timezone=True),server_default=func.now())
     updated_at = Column(DateTime(timezone=True),onupdate=func.now())
     visible = Column(Boolean, server_default='TRUE')
-
+    members = relationship("Member",back_populates="company")
 
 companies=Company.__table__
+
+
+class Member(Base):
+    __tablename__ = "members"
+    id = Column(Integer, primary_key=True, index=True,unique=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    isadmin = Column(Boolean, server_default='FALSE')
+    company_id = Column(Integer, ForeignKey("companies.id"))
+
+
+    company = relationship("Company",back_populates="members")
+
+
+members=Member.__table__
+

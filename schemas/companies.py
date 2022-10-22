@@ -1,14 +1,13 @@
 from typing import Optional,List
 from pydantic import BaseModel
-
+from .members import Member
 
 class Company(BaseModel):
     id: int
     owner_id: int
     name: str
     description: Optional[str]
-    supe_users: Optional[List[int]]
-    members: Optional[List[int]]
+    members: List[Member] = []
     visible:bool = True
     
     class Config:

@@ -3,11 +3,12 @@ from sqlalchemy.orm import Session
 
 from schemas import users as user_schemas
 from schemas import companies as company_schemas
+from schemas import members as member_schemas
 from typing import List
 from fastapi import HTTPException,status
 from users import hashing
 from database.database import database
-from database.models import users,companies
+from database.models import users,companies,members
 
 
 
@@ -118,3 +119,26 @@ class Company_Crud():
             query = companies.delete().where(companies.c.id == id)
             await database.execute(query)
             return HTTPException(status_code=200, detail=f"Company with id {id} has been deleted")
+        
+        async def get_all_companies(self,skip: int = 0, limit: int = 100)->List[company_schemas.Company]:
+            results = await database.fetch_all(companies.select().where(companies.c.visible == True).offset(skip).limit(limit))
+            return [company_schemas.Company(**result) for result in results]
+
+
+
+        async def invite_user(self,member: member_schemas.MemberInvite)->member_schemas.Member:
+             new_member = members.insert().values(user_id=member.user_id,company_id=member.company_id)
+             member_id = await database.execute(new_member)
+             return member_schemas.Member(**member.dict(),id=member_id)
+
+
+        async def s(self,skip: int = 0, limit: int = 100)->List[member_schemas.Member]:
+            results = await database.fetch_all(members.select().offset(skip).limit(limit))
+            return [member_schemas.Member(**result) for result in results]
+       
+
+            
+             
+
+
+
