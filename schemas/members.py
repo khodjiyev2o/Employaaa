@@ -1,7 +1,9 @@
 from typing import Optional,List
 from pydantic import BaseModel
 
-from database.models import Company
+
+
+
 
 
 
@@ -11,12 +13,20 @@ class Member(BaseModel):
     company_id: int
     user_id: int
     is_admin: Optional[bool] = False
-    #company: List[Company] = []
+   
 
-
+    class Config:
+        orm_mode = True
 
 class MemberInvite(BaseModel):
     company_id: int
     user_id: int
     is_admin: Optional[bool] = False
-  
+
+    class Config:
+        orm_mode = True
+
+class MemberOut(BaseModel):
+    id:int
+    user_id: int
+    is_admin: Optional[bool] = False    

@@ -4,11 +4,12 @@ from sqlalchemy.orm import Session
 from schemas import users as user_schemas
 from schemas import companies as company_schemas
 from schemas import members as member_schemas
+from schemas import invites as invite_schemas
 from typing import List
 from fastapi import HTTPException,status
 from users import hashing
 from database.database import database
-from database.models import users,companies,members
+from database.models import users,companies,members,invites
 
 
 
@@ -64,8 +65,14 @@ class User_Crud():
 
 
         async def get_all_users(self,skip: int = 0, limit: int = 100)->List[user_schemas.User]:
-            results = await database.fetch_all(users.select().offset(skip).limit(limit))
-            return [user_schemas.User(**result) for result in results]
+            fetched_users = await database.fetch_all(users.select().offset(skip).limit(limit))
+            new_list=[]
+            for user in fetched_users:
+                user = dict(user)
+                list_invites = await database.fetch_all(invites.select().where(invites.c.user_id == user["id"]))
+                user.update({"invite": [dict(result) for result in list_invites]})
+                new_list.append(user)
+            return [user_schemas.User(**result) for result in new_list]
 
 
 
@@ -103,6 +110,10 @@ class Company_Crud():
             company = await database.fetch_one(companies.select().where(companies.c.name == name))
             if company is None:
                  raise HTTPException(status_code=404, detail=f"Company with name {name} not found")
+            company = dict(company)
+            list_members = await database.fetch_all(members.select().where(members.c.company_id == company["id"]))
+            
+            company.update({"members": [dict(result) for result in list_members]})
             return company
 
         async def get_company_by_id(self,id: int)->company_schemas.Company:
@@ -122,17 +133,26 @@ class Company_Crud():
         
         async def get_all_companies(self,skip: int = 0, limit: int = 100)->List[company_schemas.Company]:
             results = await database.fetch_all(companies.select().where(companies.c.visible == True).offset(skip).limit(limit))
-            return [company_schemas.Company(**result) for result in results]
+            new_list=[]
+            for company in results:
+                company = dict(company)
+                list_members = await database.fetch_all(members.select().where(members.c.company_id == company["id"]))
+                company.update({"members": [dict(result) for result in list_members]})
+                new_list.append(company)
+            return [company_schemas.Company(**result) for result in new_list]
 
 
 
-        async def invite_user(self,member: member_schemas.MemberInvite)->member_schemas.Member:
-             new_member = members.insert().values(user_id=member.user_id,company_id=member.company_id)
-             member_id = await database.execute(new_member)
-             return member_schemas.Member(**member.dict(),id=member_id)
+        async def invite_user(self,invite: invite_schemas.InviteCreate)->invite_schemas.Invite:
+             active_invite =  await database.fetch_one(invites.select().where(invites.c.user_id == invite.user_id,invites.c.company_id == invite.company_id))
+             if active_invite:
+                raise HTTPException(status_code=400, detail=f"User with the id{invite.user_id} has already  been invited to the company with id {invite.company_id}")
+             new_invite = invites.insert().values(user_id=invite.user_id,company_id=invite.company_id)
+             invite_id = await database.execute(new_invite)
+             return invite_schemas.Invite(**invite.dict(),id=invite_id)
 
 
-        async def s(self,skip: int = 0, limit: int = 100)->List[member_schemas.Member]:
+        async def get_members(self,skip: int = 0, limit: int = 100)->List[member_schemas.Member]:
             results = await database.fetch_all(members.select().offset(skip).limit(limit))
             return [member_schemas.Member(**result) for result in results]
        

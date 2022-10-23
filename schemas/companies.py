@@ -1,14 +1,14 @@
-from typing import Optional,List
+from typing import Optional
 from pydantic import BaseModel
-from .members import Member
+from .members import MemberOut
 
 class Company(BaseModel):
     id: int
     owner_id: int
     name: str
     description: Optional[str]
-    members: List[Member] = []
     visible:bool = True
+    members: Optional[list[MemberOut]]
     
     class Config:
         orm_mode = True

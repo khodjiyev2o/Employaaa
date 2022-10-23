@@ -3,6 +3,8 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 
+
+
 Base = declarative_base()
 
 class User(Base):
@@ -16,6 +18,7 @@ class User(Base):
     password = Column(String)
     created_at = Column(DateTime(timezone=True),server_default=func.now())
     updated_at = Column(DateTime(timezone=True),onupdate=func.now())
+    invite = relationship("Invite",back_populates='user')
 
 
 
@@ -33,7 +36,8 @@ class Company(Base):
     created_at = Column(DateTime(timezone=True),server_default=func.now())
     updated_at = Column(DateTime(timezone=True),onupdate=func.now())
     visible = Column(Boolean, server_default='TRUE')
-    members = relationship("Member",back_populates="company")
+    
+    members = relationship("Member",back_populates='company')
 
 companies=Company.__table__
 
@@ -46,8 +50,21 @@ class Member(Base):
     company_id = Column(Integer, ForeignKey("companies.id"))
 
 
-    company = relationship("Company",back_populates="members")
+    company = relationship("Company",back_populates='members')
 
 
 members=Member.__table__
 
+
+
+class Invite(Base):
+    __tablename__ = "invites"
+    id = Column(Integer, primary_key=True, index=True,unique=True)
+    company_id = Column(Integer, ForeignKey("companies.id"))
+    user_id = Column(Integer, ForeignKey("users.id"))
+
+
+    user = relationship("User",back_populates='invite')
+
+
+invites = Invite.__table__

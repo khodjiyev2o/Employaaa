@@ -1,6 +1,6 @@
 from typing import Optional,List
 from pydantic import BaseModel, validator,HttpUrl
-from .companies import Company
+from .invites import InviteOut
 
 class Image(BaseModel):
     url: HttpUrl
@@ -15,7 +15,7 @@ class User(BaseModel):
     last_name: Optional[str]
     phone_number: Optional[int] 
     email: str
-    company:Optional[List[Company]]
+    invite:Optional[List[InviteOut]]
   
          
     class Config:

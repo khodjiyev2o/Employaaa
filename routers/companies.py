@@ -63,7 +63,12 @@ async def get_company_by_name(name: str,user_email=Depends(auth_handler.auth_wra
         raise HTTPException(status_code=404, detail="Company not found")
     return company
 
+    
 
+
+
+
+#Invite The user to the company .Invite will be added to User model as a company_id 
 @router.post("/invite/user/",response_model=member_schemas.Member)
 async def invite_user(member: member_schemas.MemberInvite,current_user_email=Depends(auth_handler.get_current_user))->member_schemas.Member:
     company_crud = Company_Crud(get_db)
@@ -71,6 +76,8 @@ async def invite_user(member: member_schemas.MemberInvite,current_user_email=Dep
     company = await company_crud.get_company_by_id(id=member.company_id)
     if user.id != company.owner_id:
         raise  HTTPException(status_code=403, detail="User is not authorized to invite other users to this company!")
+    if member.user_id == user.id:
+        raise HTTPException(status_code=403, detail="User cannot invite himself to the company,he is already in the company!")
     return await company_crud.invite_user(member)
 
 
