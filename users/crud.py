@@ -74,8 +74,22 @@ class User_Crud():
                 new_list.append(user)
             return [user_schemas.User(**result) for result in new_list]
 
-
-
+        async def accept_invite(self,invite:invite_schemas.InviteCreate)->member_schemas.MemberOut:
+            active_member = await database.fetch_one(members.select().where(members.c.company_id == invite.company_id,members.c.user_id == invite.user_id))
+            if active_member:
+                raise HTTPException(status_code=403,detail=f"User with id {invite.user_id} is already member in company with id {invite.company_id}")
+            member = members.insert().values(company_id=invite.company_id, user_id=invite.user_id)
+            member_id = await database.execute(member)
+            self.decline_invite(invite=invite)
+            return member_schemas.MemberOut(**invite.dict(),id=member_id)
+        
+        async def decline_invite(self,invite:invite_schemas.InviteCreate)->HTTPException:
+            active_invite = await database.fetch_one(invites.select().where(invites.c.user_id == invite.user_id,invites.c.company_id == invite.company_id))
+            if not active_invite:
+                raise HTTPException(status_code=404,detail=f"Invite to the company with id{invite.company_id} not found")
+            query = invites.delete().where(invites.c.user_id == invite.user_id,invites.c.company_id == invite.company_id)
+            await database.execute(query)
+            return HTTPException(status_code=200,detail=f"Invite to the company with id {invite.company_id} was succesfully declined")
 
 
 class Company_Crud():

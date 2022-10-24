@@ -1,11 +1,13 @@
 from fastapi import APIRouter,Depends,HTTPException,status
 from typing import  List
 from schemas import users as schemas
+from schemas import invites as invite_schemas
 from database import database
 from users.crud import User_Crud as Crud
 from users.crud import Company_Crud as Company_Crud
 from authentication.auth import AuthHandler
-from schemas import invites as invite_schemas
+from schemas import members as member_schemas
+
 
 auth_handler = AuthHandler()
 router = APIRouter()
@@ -68,19 +70,26 @@ async def delete(id: int,user:schemas.User,current_user_email=Depends(auth_handl
     return await crud.delete_user(id=id)
     
 
-@router.post("/invite/user/",response_model=invite_schemas.Invite)
-async def invite_user(invite: invite_schemas.InviteCreate,current_user_email=Depends(auth_handler.get_current_user))->invite_schemas.Invite:
-    company_crud = Company_Crud(get_db)
-    user = await Crud(db=get_db).get_user_by_email(email=current_user_email)
-    company = await company_crud.get_company_by_id(id=invite.company_id)
-    if user.id != company.owner_id:
-        raise  HTTPException(status_code=403, detail="User is not authorized to invite other users to this company!")
-    if invite.user_id == user.id:
-        raise HTTPException(status_code=403, detail="User cannot invite himself to the company,he is already in the company!")
-    return await company_crud.invite_user(invite)
 
+##apply to company
 
+##accept company's invite
+@router.post("/accept/invite")
+async def accept_invite(invite: invite_schemas.InviteCreate,current_user_email=Depends(auth_handler.get_current_user))->member_schemas.MemberOut:
+    crud = Crud(get_db)
+    current_user = await crud.get_user_by_email(email=current_user_email)
+    if current_user.id != invite.user_id :
+        raise  HTTPException(status_code=403, detail="User is not authorized to accept another user's invite!")
+    return await crud.accept_invite(invite=invite)
+##decline the company's invite
 
+@router.post("/decline/invite")
+async def decline_invite(invite: invite_schemas.InviteCreate,current_user_email=Depends(auth_handler.get_current_user))->HTTPException:
+    crud = Crud(get_db)
+    current_user = await crud.get_user_by_email(email=current_user_email)
+    if current_user.id != invite.user_id :
+        raise  HTTPException(status_code=403, detail="User is not authorized to decline another user's invite!")
+    return await crud.decline_invite(invite=invite)
 
 
 

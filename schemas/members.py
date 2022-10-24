@@ -29,4 +29,5 @@ class MemberInvite(BaseModel):
 class MemberOut(BaseModel):
     id:int
     user_id: int
+    company_id : int
     is_admin: Optional[bool] = False    

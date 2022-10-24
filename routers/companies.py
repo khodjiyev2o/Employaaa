@@ -6,7 +6,7 @@ from database import database
 from users.crud import Company_Crud  
 from users.crud import User_Crud 
 from authentication.auth import AuthHandler
-
+from schemas import invites as invite_schemas
 
 auth_handler = AuthHandler()
 router = APIRouter()
@@ -44,6 +44,8 @@ async def update_company(id:int,company: schemas.CompanyUpdate,current_user_emai
         raise  HTTPException(status_code=403, detail="User is not authorized to update another user's company!")
     return await company_crud.update_company(company=company,id=id)
 
+
+
 @router.delete("/delete/{id}")
 async def delete_company(id: int,current_user_email=Depends(auth_handler.get_current_user))->HTTPException:
     company_crud = Company_Crud(get_db)
@@ -63,25 +65,51 @@ async def get_company_by_name(name: str,user_email=Depends(auth_handler.auth_wra
         raise HTTPException(status_code=404, detail="Company not found")
     return company
 
-    
-
-
-
-
-#Invite The user to the company .Invite will be added to User model as a company_id 
-@router.post("/invite/user/",response_model=member_schemas.Member)
-async def invite_user(member: member_schemas.MemberInvite,current_user_email=Depends(auth_handler.get_current_user))->member_schemas.Member:
-    company_crud = Company_Crud(get_db)
-    user = await User_Crud(db=get_db).get_user_by_email(email=current_user_email)
-    company = await company_crud.get_company_by_id(id=member.company_id)
-    if user.id != company.owner_id:
-        raise  HTTPException(status_code=403, detail="User is not authorized to invite other users to this company!")
-    if member.user_id == user.id:
-        raise HTTPException(status_code=403, detail="User cannot invite himself to the company,he is already in the company!")
-    return await company_crud.invite_user(member)
 
 
 @router.get("/get-all/members", response_model=List[member_schemas.Member])
 async def get_all_members(skip: int = 0, limit: int = 100)->List[member_schemas.Member]:
     crud = Company_Crud(get_db)
-    return await crud.get_members(skip=skip, limit=limit)
+    return await crud.get_members(skip=skip, limit=limit)  
+
+
+
+##invite the user
+@router.post("/invite/user/",response_model=invite_schemas.Invite)
+async def invite_user(invite: invite_schemas.InviteCreate,current_user_email=Depends(auth_handler.get_current_user))->invite_schemas.Invite:
+    company_crud = Company_Crud(get_db)
+    user = await User_Crud(db=get_db).get_user_by_email(email=current_user_email)
+    company = await company_crud.get_company_by_id(id=invite.company_id)
+    if user.id != company.owner_id:
+        raise  HTTPException(status_code=403, detail="User is not authorized to invite other users to this company!")
+    if invite.user_id == user.id:
+        raise HTTPException(status_code=403, detail="User cannot invite himself to the company,he is already in the company!")
+    return await company_crud.invite_user(invite)
+
+
+
+
+##accept the user's application 
+# @router.post("/add/member/",response_model=member_schemas.Member)
+# async def invite_user(member: member_schemas.MemberInvite,current_user_email=Depends(auth_handler.get_current_user))->member_schemas.Member:
+#     company_crud = Company_Crud(get_db)
+#     user = await User_Crud(db=get_db).get_user_by_email(email=current_user_email)
+#     company = await company_crud.get_company_by_id(id=member.company_id)
+#     if user.id != company.owner_id:
+#         raise  HTTPException(status_code=403, detail="User is not authorized to invite other users to this company!")
+#     if member.user_id == user.id:
+#         raise HTTPException(status_code=403, detail="User cannot invite himself to the company,he is already in the company!")
+#     return await company_crud.invite_user(member)
+
+##decline the user's application
+
+
+
+
+##delete member from the company
+
+
+
+
+
+
