@@ -1,7 +1,10 @@
 from typing import Optional
 from pydantic import BaseModel
 from .members import MemberOut
-from .invites import Invite
+from .invites import ApplicatoCompany
+
+
+
 class Company(BaseModel):
     id: int
     owner_id: int
@@ -9,7 +12,7 @@ class Company(BaseModel):
     description: Optional[str]
     visible:bool = True
     members: Optional[list[MemberOut]]
-    applications:Optional[list[Invite]]
+    applications:Optional[list[ApplicatoCompany]]
 
     class Config:
         orm_mode = True

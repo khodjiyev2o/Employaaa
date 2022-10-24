@@ -3,7 +3,7 @@ from sqlalchemy import Column, DateTime,Integer, String,ForeignKey,Boolean
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
-
+from sqlalchemy.dialects.postgresql import ARRAY
 
 
 Base = declarative_base()
@@ -71,3 +71,31 @@ class Invite(Base):
 
 
 invites = Invite.__table__
+
+
+
+
+class Quizz(Base):
+    __tablename__ = "quizzes"
+    id = Column(Integer, primary_key=True, index=True,unique=True)
+    name =  description = Column(String,unique=True)
+    description =  Column(String)
+    frequency = Column(Integer)
+    questions = relationship("Question",back_populates='quiz')
+    
+quizzes = Quizz.__table__
+
+class Question(Base):
+    __tablename__ = "questions"
+    id = Column(Integer, primary_key=True, index=True,unique=True)
+    question = Column(String)
+    quiz_id = Column(Integer, ForeignKey("quizzes.id"))
+    quiz = relationship("Quizz",back_populates='questions')
+    
+
+    answer = Column(String)
+    options = Column(ARRAY(String),nullable=False,)
+  
+questions = Question.__table__
+
+    

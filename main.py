@@ -2,7 +2,7 @@ from email.policy import default
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from database.database import database
-from routers import authentication, users,companies
+from routers import authentication, users,companies,quizzes
 app = FastAPI()
 
 origins = [
@@ -20,7 +20,7 @@ app.add_middleware(
 app.include_router(users.router)
 app.include_router(authentication.router)
 app.include_router(companies.router)
-
+app.include_router(quizzes.router)
 
 @app.on_event("startup")
 async def startup():

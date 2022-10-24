@@ -3,8 +3,8 @@ from typing import  List
 from schemas import users as schemas
 from schemas import invites as invite_schemas
 from database import database
-from users.crud import User_Crud as Crud
-from users.crud import Company_Crud as Company_Crud
+from repositories.users import User_Crud as Crud
+from repositories.companies import Company_Crud as Company_Crud
 from authentication.auth import AuthHandler
 from schemas import members as member_schemas
 
