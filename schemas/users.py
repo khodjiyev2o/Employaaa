@@ -1,8 +1,6 @@
-
-from typing import Optional
-from email_validator import validate_email
-from pydantic import BaseModel, ValidationError, validator,HttpUrl
-
+from typing import Optional,List
+from pydantic import BaseModel, validator,HttpUrl
+from .invites import InviteOut
 
 class Image(BaseModel):
     url: HttpUrl
@@ -17,7 +15,9 @@ class User(BaseModel):
     last_name: Optional[str]
     phone_number: Optional[int] 
     email: str
-    
+    invite:Optional[List[InviteOut]]
+  
+         
     class Config:
         orm_mode = True
 
@@ -36,6 +36,7 @@ class UserSignUp(BaseModel):
     password:str
     confirm_password:str  
     phone_number: Optional[int]
+    company_name: Optional[str]
 
     @validator('confirm_password')
     def passwords_match(cls, v, values, **kwargs):

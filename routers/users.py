@@ -1,9 +1,12 @@
 from fastapi import APIRouter,Depends,HTTPException,status
 from typing import  List
 from schemas import users as schemas
-from users import database
-from users.crud import Crud
+from schemas import invites as invite_schemas
+from database import database
+from users.crud import User_Crud as Crud
+from users.crud import Company_Crud as Company_Crud
 from authentication.auth import AuthHandler
+from schemas import members as member_schemas
 
 
 auth_handler = AuthHandler()
@@ -59,7 +62,7 @@ async def get_user_by_email(email: str,user_email=Depends(auth_handler.auth_wrap
     return db_user
 
 @router.delete("/delete/{id}")
-async def delete(id: int,user:schemas.User,current_user_email=Depends(auth_handler.get_current_user))->str:
+async def delete(id: int,user:schemas.User,current_user_email=Depends(auth_handler.get_current_user))->HTTPException:
     crud = Crud(get_db)
     current_user = await crud.get_user_by_email(email=current_user_email)
     if current_user.id != id :
@@ -68,9 +71,33 @@ async def delete(id: int,user:schemas.User,current_user_email=Depends(auth_handl
     
 
 
+##apply to company
+@router.post("/apply/company")
+async def apply_to_company(application: invite_schemas.InviteCreate,current_user_email=Depends(auth_handler.get_current_user))->invite_schemas.InviteOut:
+    crud = Crud(get_db)
+    current_user = await crud.get_user_by_email(email=current_user_email)
+    if current_user.id != application.user_id :
+        raise  HTTPException(status_code=403, detail="User is not authorized to apply as another user!")
+    return await crud.apply_to_company(application=application)
 
 
+##accept company's invite
+@router.post("/accept/invite")
+async def accept_invite(invite: invite_schemas.InviteCreate,current_user_email=Depends(auth_handler.get_current_user))->member_schemas.MemberOut:
+    crud = Crud(get_db)
+    current_user = await crud.get_user_by_email(email=current_user_email)
+    if current_user.id != invite.user_id :
+        raise  HTTPException(status_code=403, detail="User is not authorized to accept another user's invite!")
+    return await crud.accept_invite(invite=invite)
+##decline the company's invite
 
+@router.post("/decline/invite")
+async def decline_invite(invite: invite_schemas.InviteCreate,current_user_email=Depends(auth_handler.get_current_user))->HTTPException:
+    crud = Crud(get_db)
+    current_user = await crud.get_user_by_email(email=current_user_email)
+    if current_user.id != invite.user_id :
+        raise  HTTPException(status_code=403, detail="User is not authorized to decline another user's invite!")
+    return await crud.decline_invite(invite=invite)
 
 
 
