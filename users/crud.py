@@ -170,7 +170,13 @@ class Company_Crud():
             results = await database.fetch_all(members.select().offset(skip).limit(limit))
             return [member_schemas.Member(**result) for result in results]
        
-
+        async def delete_member(self,member:member_schemas.MemberDelete)->HTTPException:
+            member = await database.fetch_one(members.select().where(members.c.company_id == member.company_id,members.c.user_id == member.user_id))
+            if member is None:
+                 raise HTTPException(status_code=404, detail=f"Member with User_ID {member.user_id} not found")
+            query = members.delete().where(members.c.id == member.id)
+            await database.execute(query)
+            return HTTPException(status_code=200, detail=f"Member with User_ID {member.user_id} has been deleted")
             
              
 

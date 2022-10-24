@@ -88,7 +88,16 @@ async def invite_user(invite: invite_schemas.InviteCreate,current_user_email=Dep
 
 
 
-
+@router.delete("/delete/member/")
+async def delete_member(member:member_schemas.MemberDelete,current_user_email=Depends(auth_handler.get_current_user))->HTTPException:
+    company_crud = Company_Crud(get_db)
+    active_company = await company_crud.get_company_by_id(id=member.company_id)
+    if not active_company:
+        raise HTTPException(status_code=404, detail=f"Company with name {id} not found")
+    current_user = await User_Crud(db=get_db).get_user_by_email(email=current_user_email)
+    if current_user.id != active_company.owner_id :
+        raise  HTTPException(status_code=403, detail="User is not authorized to delete members from the  company with id {}!")
+    return await company_crud.delete_member(member=member)
 ##accept the user's application 
 # @router.post("/add/member/",response_model=member_schemas.Member)
 # async def invite_user(member: member_schemas.MemberInvite,current_user_email=Depends(auth_handler.get_current_user))->member_schemas.Member:
