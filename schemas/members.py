@@ -35,3 +35,10 @@ class MemberOut(BaseModel):
 class MemberDelete(BaseModel):
     user_id: int
     company_id : int
+
+
+class MemberUpdate(BaseModel):
+    user_id: int
+    company_id : int
+    is_admin : bool = False
+    

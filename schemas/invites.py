@@ -1,8 +1,6 @@
 from typing import Optional
 from pydantic import BaseModel
 
-from schemas.companies import Company
-from .members import MemberOut
 
 
 
@@ -30,5 +28,12 @@ class InviteCreate(BaseModel):
 class InviteOut(BaseModel):
     company_id:int
 
+    class Config:
+        orm_mode = True
+
+
+class ApplicatoCompany(BaseModel):
+    user_id: int
+    
     class Config:
         orm_mode = True

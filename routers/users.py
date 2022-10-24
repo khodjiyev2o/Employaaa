@@ -72,6 +72,14 @@ async def delete(id: int,user:schemas.User,current_user_email=Depends(auth_handl
 
 
 ##apply to company
+@router.post("/apply/company")
+async def apply_to_company(application: invite_schemas.InviteCreate,current_user_email=Depends(auth_handler.get_current_user))->invite_schemas.InviteOut:
+    crud = Crud(get_db)
+    current_user = await crud.get_user_by_email(email=current_user_email)
+    if current_user.id != application.user_id :
+        raise  HTTPException(status_code=403, detail="User is not authorized to apply as another user!")
+    return await crud.apply_to_company(application=application)
+
 
 ##accept company's invite
 @router.post("/accept/invite")

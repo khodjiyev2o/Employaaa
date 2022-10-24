@@ -90,7 +90,15 @@ class User_Crud():
             query = invites.delete().where(invites.c.user_id == invite.user_id,invites.c.company_id == invite.company_id)
             await database.execute(query)
             return HTTPException(status_code=200,detail=f"Invite to the company with id {invite.company_id} was succesfully declined")
-
+        
+        async def apply_to_company(self,application:invite_schemas.InviteCreate)->invite_schemas.Invite:
+            active_application = await database.fetch_one(invites.select().where(invites.c.user_id == application.user_id,invites.c.company_id == application.company_id))
+            member = await database.fetch_one(members.select().where(members.c.user_id == application.user_id,members.c.company_id == application.company_id))
+            if  active_application or member:
+                raise HTTPException(status_code=404,detail=f"You have already applied to the  company with id {application.company_id}")
+            query = invites.insert().values(user_id=application.user_id,company_id=application.company_id)
+            new_application_id = await database.execute(query)
+            return invite_schemas.Invite(**application.dict(),id=new_application_id)
 
 class Company_Crud():
         def __init__(self,db:Session):
@@ -126,8 +134,8 @@ class Company_Crud():
                  raise HTTPException(status_code=404, detail=f"Company with name {name} not found")
             company = dict(company)
             list_members = await database.fetch_all(members.select().where(members.c.company_id == company["id"]))
-            
-            company.update({"members": [dict(result) for result in list_members]})
+            list_applications = await database.fetch_all(invites.select().where(invites.c.company_id == company["id"]))
+            company.update({"members": [dict(result) for result in list_members],"applications":[dict(application) for application in list_applications]})
             return company
 
         async def get_company_by_id(self,id: int)->company_schemas.Company:
@@ -147,13 +155,7 @@ class Company_Crud():
         
         async def get_all_companies(self,skip: int = 0, limit: int = 100)->List[company_schemas.Company]:
             results = await database.fetch_all(companies.select().where(companies.c.visible == True).offset(skip).limit(limit))
-            new_list=[]
-            for company in results:
-                company = dict(company)
-                list_members = await database.fetch_all(members.select().where(members.c.company_id == company["id"]))
-                company.update({"members": [dict(result) for result in list_members]})
-                new_list.append(company)
-            return [company_schemas.Company(**result) for result in new_list]
+            return [company_schemas.Company(**result) for result in results]
 
 
 
@@ -170,14 +172,46 @@ class Company_Crud():
             results = await database.fetch_all(members.select().offset(skip).limit(limit))
             return [member_schemas.Member(**result) for result in results]
        
+
+
+        async def accept_user(self,application:invite_schemas.InviteCreate)->member_schemas.MemberOut:
+            member = await database.fetch_one(members.select().where(members.c.company_id == application.company_id,members.c.user_id == application.user_id))
+            if member:
+                 raise HTTPException(status_code=404, detail=f"Member with User_ID {member.user_id} already in the company ")
+            query = members.insert().values(user_id=application.user_id,company_id=application.company_id)
+            member_id = await database.execute(query)
+            delete_application = invites.delete().where(invites.c.user_id == application.user_id,invites.c.company_id == application.company_id)
+            await database.execute(delete_application)
+            return member_schemas.MemberOut(**application.dict(),id=member_id)
+
+
+
         async def delete_member(self,member:member_schemas.MemberDelete)->HTTPException:
             member = await database.fetch_one(members.select().where(members.c.company_id == member.company_id,members.c.user_id == member.user_id))
             if member is None:
                  raise HTTPException(status_code=404, detail=f"Member with User_ID {member.user_id} not found")
             query = members.delete().where(members.c.id == member.id)
             await database.execute(query)
+            user_crud = User_Crud()
             return HTTPException(status_code=200, detail=f"Member with User_ID {member.user_id} has been deleted")
-            
+        
+        async def get_member(self,member:member_schemas.MemberUpdate)->member_schemas.Member:
+            active_member = await database.fetch_one(members.select().where(members.c.user_id == member.user_id,members.c.company_id == member.company_id))
+            if active_member is None:
+                 raise HTTPException(status_code=404, detail=f"Member with User id {member.user_id} not found")
+            return member
+
+        ##make admin
+        async def update_admin(self,member:member_schemas.MemberUpdate)->member_schemas.Member:
+            active_member =  await database.fetch_one(members.select().where(members.c.company_id == member.company_id,members.c.user_id == member.user_id))
+            if not active_member:
+                raise HTTPException(status_code=400, detail="Member with User id {id} does not exist")
+            query = members.update().where(
+                members.c.company_id == member.company_id,members.c.user_id == member.user_id).values(
+            is_admin=member.is_admin
+            )
+            await database.execute(query)
+            return await self.get_member(member=member)
              
 
 

@@ -1,3 +1,4 @@
+from email.mime import application
 from sqlalchemy import Column, DateTime,Integer, String,ForeignKey,Boolean
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.sql import func
@@ -36,7 +37,7 @@ class Company(Base):
     created_at = Column(DateTime(timezone=True),server_default=func.now())
     updated_at = Column(DateTime(timezone=True),onupdate=func.now())
     visible = Column(Boolean, server_default='TRUE')
-    
+    application = relationship("Invite",back_populates='company')
     members = relationship("Member",back_populates='company')
 
 companies=Company.__table__
@@ -46,7 +47,8 @@ class Member(Base):
     __tablename__ = "members"
     id = Column(Integer, primary_key=True, index=True,unique=True)
     user_id = Column(Integer, ForeignKey("users.id"))
-    isadmin = Column(Boolean, server_default='FALSE')
+    is_admin = Column(Boolean, server_default='FALSE')
+
     company_id = Column(Integer, ForeignKey("companies.id"))
 
 
@@ -64,6 +66,7 @@ class Invite(Base):
     user_id = Column(Integer, ForeignKey("users.id"))
 
 
+    company = relationship("Company",back_populates='application')
     user = relationship("User",back_populates='invite')
 
 
