@@ -56,3 +56,11 @@ class QuizOut(Quiz):
         orm_mode = True
 
 
+class QuizUpdate(BaseModel):
+    name: Optional[str]
+    description: Optional[str]
+    frequency:Optional[int]
+    company_id : Optional[int]
+
+    class Config:
+        orm_mode = True

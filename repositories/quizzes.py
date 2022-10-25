@@ -70,4 +70,19 @@ class Quiz_Crud():
             query = quizzes.delete().where(quizzes.c.id == id)
             await database.execute(query)
             return HTTPException(status_code=200, detail=f"Quiz with id {id} has been deleted")
+           
+           
             ##update quiz
+
+        async def update_quiz(self,id:int,quiz:quiz_schemas.QuizUpdate)->quiz_schemas.Quiz:
+            active_quiz= await database.fetch_one(quizzes.select().where(quizzes.c.id == id))
+            if active_quiz is None:
+                 raise HTTPException(status_code=404, detail=f"Quiz with id {id} not found")
+            query = quizzes.update().where(quizzes.c.id == id).values(
+            name = quiz.name,
+            description=quiz.description,
+            frequency=quiz.frequency,
+            company_id = quiz.company_id,
+            )
+            await database.execute(query)
+            return await self.get_quiz_by_id(id=id)

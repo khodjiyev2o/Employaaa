@@ -7,8 +7,8 @@ from repositories.companies import Company_Crud
 from repositories.users import User_Crud 
 from repositories.quizzes import Quiz_Crud
 from authentication.auth import AuthHandler
-
-
+from database.models import members
+from database.database import database as db
 auth_handler = AuthHandler()
 router = APIRouter()
 
@@ -53,20 +53,25 @@ async def get_quiz_by_id(id:int)->quiz_schemas.Quiz:
 @router.delete("/delete/{id}")
 async def delete_quiz(id: int,quiz:quiz_schemas.Quiz,current_user_email=Depends(auth_handler.get_current_user))->HTTPException:
     crud = Quiz_Crud(get_db)
-    current_user = await crud.get_user_by_email(email=current_user_email)\
-    company = Company_Crud(get_db).get_company_by_id(id=quiz.company_id)
+    user_crud = User_Crud(get_db)
+    current_user = await user_crud.get_user_by_email(email=current_user_email)
+    company = await Company_Crud(get_db).get_company_by_id(id=quiz.company_id)
     if current_user.id != company.owner_id :
         raise  HTTPException(status_code=403, detail="User is not authorized to delete another user's account!")
     return await crud.delete_quiz(id=id)
 
 
-# @router.delete("/delete/{id}")
-# async def delete_quiz(id: int,current_user_email=Depends(auth_handler.get_current_user))->HTTPException:
-#     quiz_crud = Quiz_Crud(get_db)
-#     active_quiz = await quiz_crud.get_company_by_id(id=id)
-#     if not active_quiz:
-#         raise HTTPException(status_code=404, detail=f"Quiz with id {id} not found")
-#     current_user = await User_Crud(db=get_db).get_user_by_email(email=current_user_email)
-#     if current_user.id != active_quiz.owner_id :
-#         raise  HTTPException(status_code=403, detail="User is not authorized to delete another user's company!")
-#     return await company_crud.delete_company(id=id)
+
+@router.patch("/update/{id}",response_model=quiz_schemas.Quiz)
+async def update_user(id: int,quiz:quiz_schemas.QuizUpdate,current_user_email=Depends(auth_handler.get_current_user))->quiz_schemas.Quiz:
+    crud = User_Crud(get_db)
+    current_user = await crud.get_user_by_email(email=current_user_email)
+    company = await Company_Crud(get_db).get_company_by_id(id=quiz.company_id)
+    member = await db.fetch_one(members.select().where(members.c.user_id == current_user.id,members.c.company_id == company.id))
+    if current_user.id != company.owner_id:
+        try:
+            if current_user.id == member.user_id :
+                return await Quiz_Crud(get_db).update_quiz(quiz=quiz,id=id)
+        except AttributeError:
+                raise  HTTPException(status_code=403, detail="User is not authorized to update another user's company!")
+    return await Quiz_Crud(get_db).update_quiz(quiz=quiz,id=id)

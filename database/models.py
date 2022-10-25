@@ -39,7 +39,7 @@ class Company(Base):
     visible = Column(Boolean, server_default='TRUE')
     application = relationship("Invite",back_populates='company')
     members = relationship("Member",back_populates='company')
-    quiz = relationship("Quiz",back_populates='company')
+    quiz = relationship("Quizz",back_populates='company')
 companies=Company.__table__
 
 
