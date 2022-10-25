@@ -46,7 +46,7 @@ companies=Company.__table__
 class Member(Base):
     __tablename__ = "members"
     id = Column(Integer, primary_key=True, index=True,unique=True)
-    user_id = Column(Integer, ForeignKey("users.id"))
+    user_id = Column(Integer, ForeignKey("users.id",ondelete="CASCADE"))
     is_admin = Column(Boolean, server_default='FALSE')
 
     company_id = Column(Integer, ForeignKey("companies.id"))
@@ -62,8 +62,8 @@ members=Member.__table__
 class Invite(Base):
     __tablename__ = "invites"
     id = Column(Integer, primary_key=True, index=True,unique=True)
-    company_id = Column(Integer, ForeignKey("companies.id"))
-    user_id = Column(Integer, ForeignKey("users.id"))
+    company_id = Column(Integer, ForeignKey("companies.id",ondelete="CASCADE"))
+    user_id = Column(Integer, ForeignKey("users.id",ondelete="CASCADE"))
 
 
     company = relationship("Company",back_populates='application')
@@ -82,7 +82,7 @@ class Quizz(Base):
     description =  Column(String)
     frequency = Column(Integer)
     questions = relationship("Question",back_populates='quiz')
-    company_id = Column(Integer, ForeignKey("companies.id"))
+    company_id = Column(Integer, ForeignKey("companies.id",ondelete="CASCADE"))
 
 
     company = relationship("Company",back_populates='quiz')
@@ -92,7 +92,7 @@ class Question(Base):
     __tablename__ = "questions"
     id = Column(Integer, primary_key=True, index=True,unique=True)
     question = Column(String)
-    quiz_id = Column(Integer, ForeignKey("quizzes.id"))
+    quiz_id = Column(Integer, ForeignKey("quizzes.id",ondelete="CASCADE"))
     quiz = relationship("Quizz",back_populates='questions')
     
 

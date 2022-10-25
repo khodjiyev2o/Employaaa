@@ -35,7 +35,11 @@ class Quiz_Crud():
             quiz = await database.fetch_one(quizzes.select().where(quizzes.c.id == id))
             if quiz is None:
                  raise HTTPException(status_code=404, detail=f"Quiz with id {id} not found")
+            quiz = dict(quiz)
+            list_questions = await database.fetch_all(questions.select().where(questions.c.quiz_id == quiz["id"]))
+            quiz.update({"questions": [dict(result) for result in list_questions]})
             return quiz
+
 
         async def get_all_quizzes_for_company_id(self,id: int,skip: int = 0, limit: int = 100)->company_schemas.Company:
             company = await database.fetch_one(companies.select().where(companies.c.id == id))
@@ -86,3 +90,12 @@ class Quiz_Crud():
             )
             await database.execute(query)
             return await self.get_quiz_by_id(id=id)
+
+
+        async def delete_question(self,id:int)->HTTPException:
+            question = await database.fetch_one(questions.select().where(questions.c.id == id))
+            if question is None:
+                 raise HTTPException(status_code=404, detail=f"Quiz with id {id} not found")
+            query = questions.delete().where(questions.c.id == id)
+            await database.execute(query)
+            return HTTPException(status_code=200, detail=f"Ques with id {id} has been deleted")
