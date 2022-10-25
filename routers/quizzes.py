@@ -34,9 +34,8 @@ async def get_all_quizzes_for_company_id(id:int,skip: int = 0, limit: int = 100)
     return await crud.get_all_quizzes_for_company_id(id=id,skip=skip, limit=limit)
 
 
-
 @router.post("/create/")
-async def create_quiz(quiz: quiz_schemas.Quiz)->quiz_schemas.Quiz:
+async def create_quiz(quiz: quiz_schemas.QuizCreate)->quiz_schemas.Quiz:
     quiz_crud = Quiz_Crud(get_db)
     return await quiz_crud.create_quiz(quiz=quiz)
 
@@ -50,6 +49,15 @@ async def get_quiz_by_id(id:int)->quiz_schemas.Quiz:
     quiz_crud = Quiz_Crud(get_db)
     return await quiz_crud.get_quiz_by_id(id=id)
 
+
+@router.delete("/delete/{id}")
+async def delete_quiz(id: int,quiz:quiz_schemas.Quiz,current_user_email=Depends(auth_handler.get_current_user))->HTTPException:
+    crud = Quiz_Crud(get_db)
+    current_user = await crud.get_user_by_email(email=current_user_email)\
+    company = Company_Crud(get_db).get_company_by_id(id=quiz.company_id)
+    if current_user.id != company.owner_id :
+        raise  HTTPException(status_code=403, detail="User is not authorized to delete another user's account!")
+    return await crud.delete_quiz(id=id)
 
 
 # @router.delete("/delete/{id}")

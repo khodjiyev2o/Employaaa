@@ -15,7 +15,7 @@ class Quiz_Crud():
         def __init__(self,db:Session):
             self.db = db
 
-        async def create_quiz(self,quiz: quiz_schemas.QuizOut)->quiz_schemas.QuizOut:
+        async def create_quiz(self,quiz: quiz_schemas.QuizCreate)->quiz_schemas.Quiz:
             active_quiz =  await database.fetch_one(quizzes.select().where(quizzes.c.name == quiz.name))
             if active_quiz:
                 raise HTTPException(status_code=400, detail="Quiz already exists")
@@ -24,10 +24,10 @@ class Quiz_Crud():
                 name=quiz.name,
                 description=quiz.description,
                 frequency=quiz.frequency,
-
+                company_id = quiz.company_id,
                 )
             quiz_id = await database.execute(new_quiz)
-            return quiz_schemas.QuizOut(**quiz.dict(),id=quiz_id)
+            return quiz_schemas.Quiz(**quiz.dict(),id=quiz_id)
         
                     ##insert questions and options also
 

@@ -2,7 +2,7 @@ from typing import Optional
 from pydantic import BaseModel
 from .members import MemberOut
 from .invites import ApplicatoCompany
-from .quizzes import QuizOut
+from .quizzes import Quiz
 
 
 class Company(BaseModel):
@@ -13,9 +13,9 @@ class Company(BaseModel):
     visible:bool = True
     members: Optional[list[MemberOut]]
     applications:Optional[list[ApplicatoCompany]]
-    quiz:Optional[list[QuizOut]]
+    quiz:Optional[list[Quiz]]
 
-    
+
     class Config:
         orm_mode = True
 
