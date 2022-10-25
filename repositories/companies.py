@@ -106,7 +106,6 @@ class Company_Crud():
                  raise HTTPException(status_code=404, detail=f"Member with User_ID {member.user_id} not found")
             query = members.delete().where(members.c.id == member.id)
             await database.execute(query)
-            user_crud = User_Crud()
             return HTTPException(status_code=200, detail=f"Member with User_ID {member.user_id} has been deleted")
         
         async def get_member(self,member:member_schemas.MemberUpdate)->member_schemas.Member:
