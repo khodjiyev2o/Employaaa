@@ -7,7 +7,7 @@ from repositories.users import User_Crud as Crud
 from repositories.companies import Company_Crud as Company_Crud
 from authentication.auth import AuthHandler
 from schemas import members as member_schemas
-
+from database.database import database as get_db
 
 auth_handler = AuthHandler()
 router = APIRouter()
@@ -18,7 +18,7 @@ router = APIRouter(
     responses={404: {"description": "Not found"}},
 )
 
-get_db = database.get_db
+
 
 
 

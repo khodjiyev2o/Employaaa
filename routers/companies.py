@@ -2,11 +2,13 @@ from fastapi import APIRouter,Depends,HTTPException,status
 from typing import  List
 from schemas import companies as schemas
 from schemas import members as member_schemas
-from database import database
+
 from repositories.companies import Company_Crud  
 from repositories.users import User_Crud 
 from authentication.auth import AuthHandler
 from schemas import invites as invite_schemas
+from database.database import database as get_db
+
 
 auth_handler = AuthHandler()
 router = APIRouter()
@@ -17,7 +19,6 @@ router = APIRouter(
     responses={404: {"description": "Not found"}},
 )
 
-get_db = database.get_db
 
 
 @router.get("/get-all/", response_model=List[schemas.Company])

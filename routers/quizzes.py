@@ -2,13 +2,15 @@ from fastapi import APIRouter,Depends,HTTPException,status
 from typing import  List
 from schemas import quizzes as quiz_schemas
 from schemas import companies as company_schemas
-from database import database
+
 from repositories.companies import Company_Crud  
 from repositories.users import User_Crud 
 from repositories.quizzes import Quiz_Crud
 from authentication.auth import AuthHandler
 from database.models import members,questions
-from database.database import database as db
+
+from database.database import database as get_db
+
 auth_handler = AuthHandler()
 router = APIRouter()
 
@@ -18,7 +20,7 @@ router = APIRouter(
     responses={404: {"description": "Not found"}},
 )
 
-get_db = database.get_db
+
 
 
 
