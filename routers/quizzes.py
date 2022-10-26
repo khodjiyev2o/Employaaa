@@ -85,7 +85,7 @@ async def delete_question(id: int,current_user_email=Depends(auth_handler.get_cu
     crud = Quiz_Crud(get_db)
     user_crud = User_Crud(get_db)   
     current_user = await user_crud.get_user_by_email(email=current_user_email)
-    question = await db.fetch_one(questions.select().where(questions.c.id == id))
+    question = await get_db.fetch_one(questions.select().where(questions.c.id == id))
     if not question:
         raise HTTPException(status_code=404, detail=f"Question with id {id} does not exist")
     quiz =  await crud.get_quiz_by_id(id=question.quiz_id)
@@ -99,7 +99,7 @@ async def update_quiz(id: int,quiz:quiz_schemas.QuizUpdate,current_user_email=De
     crud = User_Crud(get_db)
     current_user = await crud.get_user_by_email(email=current_user_email)
     company = await Company_Crud(get_db).get_company_by_id(id=quiz.company_id)
-    member = await db.fetch_one(members.select().where(members.c.user_id == current_user.id,members.c.company_id == company.id))
+    member = await get_db.fetch_one(members.select().where(members.c.user_id == current_user.id,members.c.company_id == company.id))
     if current_user.id != company.owner_id:
         try:
             if current_user.id == member.user_id :
