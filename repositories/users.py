@@ -30,7 +30,7 @@ class User_Crud():
             user = await self.db.fetch_one(users.select().where(users.c.email == email))
             if user is None:
                  raise HTTPException(status_code=404, detail=f"User with email {email} not found")
-            return user
+            return user_schemas.User(**dict(user))
             
         
 
@@ -38,7 +38,7 @@ class User_Crud():
             user = await self.db.fetch_one(users.select().where(users.c.id == id))
             if user is None:
                  raise HTTPException(status_code=404, detail=f"User with id {id} not found")
-            return user
+            return user_schemas.User(**dict(user))
 
         async def update_user(self,id:int,user:user_schemas.UserUpdate)->user_schemas.User:
             now = datetime.utcnow()

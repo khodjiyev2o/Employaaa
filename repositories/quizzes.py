@@ -35,21 +35,17 @@ class Quiz_Crud():
             quiz = await self.db.fetch_one(quizzes.select().where(quizzes.c.id == id))
             if quiz is None:
                  raise HTTPException(status_code=404, detail=f"Quiz with id {id} not found")
-            quiz = dict(quiz)
             list_questions = await self.db.fetch_all(questions.select().where(questions.c.quiz_id == quiz["id"]))
-            quiz.update({"questions": [dict(result) for result in list_questions]})
-            return quiz
+            return quiz_schemas.QuizOut(**dict(quiz), questions=[quiz_schemas.Question(**result) for result in list_questions])
 
 
         async def get_all_quizzes_for_company_id(self,id: int,skip: int = 0, limit: int = 100)->company_schemas.Company:
             company = await self.db.fetch_one(companies.select().where(companies.c.id == id))
             if company is None:
                  raise HTTPException(status_code=404, detail=f"Company with id {id} not found")
-            company = dict(company)
             list_quizzes = await self.db.fetch_all(quizzes.select().where(quizzes.c.company_id == company["id"]).offset(skip).limit(limit))
-            company.update({"quiz": [dict(result) for result in list_quizzes]})
-            return company_schemas.Company(**company)
-
+            return company_schemas.Company(**dict(company), quiz=[quiz_schemas.Quiz(**result) for result in list_quizzes])
+    
 
         async def create_question(self,question:quiz_schemas.QuestionCreate)->quiz_schemas.Question:
             active_question =  await self.db.fetch_one(questions.select().where(questions.c.question == question.question))

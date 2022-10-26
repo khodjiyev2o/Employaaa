@@ -8,7 +8,7 @@ from schemas import invites as invite_schemas
 from typing import List
 from fastapi import HTTPException,status
 from users import hashing
-from database.models import users,companies,members,invites
+from database.models import Invite, users,companies,members,invites
 
 
 
@@ -45,17 +45,15 @@ class Company_Crud():
             company = await self.db.fetch_one(companies.select().where(companies.c.name == name))
             if company is None:
                  raise HTTPException(status_code=404, detail=f"Company with name {name} not found")
-            company = dict(company)
             list_members = await self.db.fetch_all(members.select().where(members.c.company_id == company["id"]))
             list_applications = await self.db.fetch_all(invites.select().where(invites.c.company_id == company["id"]))
-            company.update({"members": [dict(result) for result in list_members],"applications":[dict(application) for application in list_applications]})
-            return company
+            return company_schemas.Company(**dict(company), members=[member_schemas.Member(**result) for result in list_members], applications=[invite_schemas.Invite(**result) for result in list_applications])
 
         async def get_company_by_id(self,id: int)->company_schemas.Company:
             company = await self.db.fetch_one(companies.select().where(companies.c.id == id))
             if company is None:
                  raise HTTPException(status_code=404, detail=f"Company with name {id} not found")
-            return company
+            return company_schemas.Company(**dict(company))
 
 
         async def delete_company(self,id:int)->HTTPException:
@@ -111,13 +109,13 @@ class Company_Crud():
             active_member = await self.db.fetch_one(members.select().where(members.c.user_id == member.user_id,members.c.company_id == member.company_id))
             if active_member is None:
                  raise HTTPException(status_code=404, detail=f"Member with User id {member.user_id} not found")
-            return member
+            return member_schemas.Member(**dict(member))
 
         ##make admin
         async def update_admin(self,member:member_schemas.MemberUpdate)->member_schemas.Member:
             active_member =  await self.db.fetch_one(members.select().where(members.c.company_id == member.company_id,members.c.user_id == member.user_id))
             if not active_member:
-                raise HTTPException(status_code=400, detail="Member with User id {id} does not exist")
+                raise HTTPException(status_code=400, detail=f"Member with User id {id} does not exist")
             query = members.update().where(
                 members.c.company_id == member.company_id,members.c.user_id == member.user_id).values(
             is_admin=member.is_admin
