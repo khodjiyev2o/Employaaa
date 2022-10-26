@@ -2,11 +2,13 @@ from fastapi import APIRouter,Depends,HTTPException,status
 from typing import  List
 from schemas import companies as schemas
 from schemas import members as member_schemas
-from database import database
-from users.crud import Company_Crud  
-from users.crud import User_Crud 
+
+from repositories.companies import Company_Crud  
+from repositories.users import User_Crud 
 from authentication.auth import AuthHandler
 from schemas import invites as invite_schemas
+from database.database import database as get_db
+
 
 auth_handler = AuthHandler()
 router = APIRouter()
@@ -17,7 +19,6 @@ router = APIRouter(
     responses={404: {"description": "Not found"}},
 )
 
-get_db = database.get_db
 
 
 @router.get("/get-all/", response_model=List[schemas.Company])
@@ -51,7 +52,7 @@ async def delete_company(id: int,current_user_email=Depends(auth_handler.get_cur
     company_crud = Company_Crud(get_db)
     active_company = await company_crud.get_company_by_id(id=id)
     if not active_company:
-        raise HTTPException(status_code=404, detail=f"Company with name {id} not found")
+        raise HTTPException(status_code=404, detail=f"Company with id {id} not found")
     current_user = await User_Crud(db=get_db).get_user_by_email(email=current_user_email)
     if current_user.id != active_company.owner_id :
         raise  HTTPException(status_code=403, detail="User is not authorized to delete another user's company!")
