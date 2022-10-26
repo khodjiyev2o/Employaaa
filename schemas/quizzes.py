@@ -38,7 +38,7 @@ class Quiz(BaseModel):
     class Config:
         orm_mode = True
 
-class QuizCreate(BaseModel):
+class QuizCreate(Quiz):
     name: str
     description: Optional[str]
     frequency:int
@@ -49,7 +49,7 @@ class QuizCreate(BaseModel):
         orm_mode = True
 
 class QuizOut(Quiz):
-    questions: conlist(list[Question], min_items=2)
+    questions: conlist(Question, min_items=2)
    
 
     class Config:

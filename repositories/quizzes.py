@@ -95,7 +95,7 @@ class Quiz_Crud():
         async def delete_question(self,id:int)->HTTPException:
             question = await database.fetch_one(questions.select().where(questions.c.id == id))
             if question is None:
-                 raise HTTPException(status_code=404, detail=f"Quiz with id {id} not found")
+                 raise HTTPException(status_code=404, detail=f"Question with id {id} not found")
             query = questions.delete().where(questions.c.id == id)
             await database.execute(query)
-            return HTTPException(status_code=200, detail=f"Ques with id {id} has been deleted")
+            return HTTPException(status_code=200, detail=f"Question with id {id} has been deleted")
