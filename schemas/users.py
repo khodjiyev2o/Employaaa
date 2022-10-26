@@ -1,6 +1,8 @@
 from typing import Optional,List
 from pydantic import BaseModel, validator,HttpUrl
 from .invites import InviteOut
+from .results import UserResult
+
 
 class Image(BaseModel):
     url: HttpUrl
@@ -9,17 +11,19 @@ class Image(BaseModel):
     class Config:
         orm_mode = True
 
+
 class User(BaseModel):
     id: int
     first_name: Optional[str]
     last_name: Optional[str]
     phone_number: Optional[int] 
     email: str
-    invite:Optional[List[InviteOut]]
-  
+    invite:Optional[list[InviteOut]]
+    result:Optional[list[UserResult]]
          
     class Config:
         orm_mode = True
+
 
 class UserSignIn(BaseModel):
     email:str
@@ -52,6 +56,9 @@ class UserUpdate(BaseModel):
     
     class Config:
         orm_mode = True
+
+
+
 
 
 

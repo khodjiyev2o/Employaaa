@@ -1,13 +1,16 @@
 from datetime import datetime
 from sqlalchemy.orm import Session
+from repositories.companies import Company_Crud
 
 from schemas import quizzes as quiz_schemas
 from schemas import companies as company_schemas
+from schemas import results as result_schemas
+from schemas import users as user_schemas
 from typing import List
 from fastapi import HTTPException,status
 from users import hashing
 from database.database import database
-from database.models import users,companies,members,invites,quizzes,questions
+from database.models import users,companies,members,invites,quizzes,questions,results
 
 
 
@@ -95,3 +98,28 @@ class Quiz_Crud():
             query = questions.delete().where(questions.c.id == id)
             await self.db.execute(query)
             return HTTPException(status_code=200, detail=f"Question with id {id} has been deleted")
+        
+
+        async def solve_quiz(self,answer:quiz_schemas.AnswerSheet,user:user_schemas.User)->result_schemas:
+            score = 0
+            active_quiz = await self.get_quiz_by_id(id=answer.quiz_id)
+            quiz_questions  = active_quiz.questions
+            user_answers = answer.answers
+            for user_answers,question in zip(user_answers,quiz_questions):
+                if user_answers.question_id == question.id and user_answers.answer == question.answer:
+                    score+=1
+            db_result = results.insert().values(
+                 company_id=active_quiz.company_id,
+                 quiz_id=answer.quiz_id,
+                 user_id=user.id,
+                 result=score
+                 )
+            result_id = await self.db.execute(db_result)
+            return  result_schemas.Result(id=result_id,
+                                        user_id=user.id,
+                                        company_id=active_quiz.company_id,
+                                        result=score,
+                                        quiz_id=active_quiz.id
+                                        )
+             
+            

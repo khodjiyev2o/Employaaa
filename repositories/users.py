@@ -5,10 +5,11 @@ from schemas import users as user_schemas
 from schemas import companies as company_schemas
 from schemas import members as member_schemas
 from schemas import invites as invite_schemas
+from schemas import results as result_schemas
 from typing import List
 from fastapi import HTTPException,status
 from users import hashing
-from database.models import users,companies,members,invites
+from database.models import users,companies,members,invites,results
 
 
 
@@ -38,7 +39,8 @@ class User_Crud():
             user = await self.db.fetch_one(users.select().where(users.c.id == id))
             if user is None:
                  raise HTTPException(status_code=404, detail=f"User with id {id} not found")
-            return user_schemas.User(**dict(user))
+            list_result = await self.db.fetch_all(results.select().where(results.c.user_id == user.id))
+            return user_schemas.User(**dict(user),result=[result_schemas.UserResult(**result) for result in list_result])
 
         async def update_user(self,id:int,user:user_schemas.UserUpdate)->user_schemas.User:
             now = datetime.utcnow()

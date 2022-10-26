@@ -4,7 +4,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import ARRAY
-
+from sqlalchemy.ext.hybrid import hybrid_property
 
 Base = declarative_base()
 
@@ -20,7 +20,7 @@ class User(Base):
     created_at = Column(DateTime(timezone=True),server_default=func.now())
     updated_at = Column(DateTime(timezone=True),onupdate=func.now())
     invite = relationship("Invite",back_populates='user')
-
+    result = relationship("Result",back_populates='user')
 
 
 users=User.__table__
@@ -40,6 +40,8 @@ class Company(Base):
     application = relationship("Invite",back_populates='company')
     members = relationship("Member",back_populates='company')
     quiz = relationship("Quizz",back_populates='company')
+
+
 companies=Company.__table__
 
 
@@ -48,9 +50,7 @@ class Member(Base):
     id = Column(Integer, primary_key=True, index=True,unique=True)
     user_id = Column(Integer, ForeignKey("users.id",ondelete="CASCADE"))
     is_admin = Column(Boolean, server_default='FALSE')
-
     company_id = Column(Integer, ForeignKey("companies.id"))
-
 
     company = relationship("Company",back_populates='members')
 
@@ -86,6 +86,8 @@ class Quizz(Base):
 
 
     company = relationship("Company",back_populates='quiz')
+    result = relationship("Result",back_populates='quiz')
+
 quizzes = Quizz.__table__
 
 class Question(Base):
@@ -101,4 +103,25 @@ class Question(Base):
   
 questions = Question.__table__
 
+
+class Result(Base):
+    __tablename__ = "results"
+    id = Column(Integer, primary_key=True, index=True,unique=True)
+    company_id = Column(Integer, ForeignKey("companies.id",ondelete="CASCADE"))
+    quiz_id = Column(Integer, ForeignKey("quizzes.id",ondelete="CASCADE"))
+
+    result = Column(Integer)
+
+    user_id = Column(Integer, ForeignKey("users.id",ondelete="CASCADE"))
     
+    user = relationship("User",back_populates='result')
+
+
+    quiz = relationship("Quizz",back_populates='result')
+    
+    @hybrid_property
+    def mean_result(self):
+        return (sum(x) for x in self.result)/len(self.result)
+
+
+results = Result.__table__
