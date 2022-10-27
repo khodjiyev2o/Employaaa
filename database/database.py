@@ -5,8 +5,10 @@ from dotenv import load_dotenv
 import os
 from sqlalchemy.orm import sessionmaker
 import asyncio
+from redis_om import get_redis_connection
 
-from sqlalchemy.ext.asyncio import create_async_engine
+
+
 load_dotenv()
 
 metadata = sqlalchemy.MetaData()
@@ -20,6 +22,7 @@ engine = create_engine(
     DATABASE_URL
 )
 
+
 SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False,)
 
 
@@ -29,3 +32,9 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+
+redis_db =  get_redis_connection(
+    host= 'localhost', port='6379'
+)

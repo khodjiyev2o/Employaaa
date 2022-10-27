@@ -5,6 +5,13 @@ from pydantic import BaseModel,conlist
 from database.models import Base
 from .results import QuizResult
 
+
+
+from redis_om import HashModel
+from database.database import redis_db
+
+
+
 class Question(BaseModel):
       id: int
       question:str
@@ -77,8 +84,12 @@ class AnswerSheet(BaseModel):
     answers: Optional[list[Answer]]
 
 
-        ##question_id
-        ##quiZ_id
-        ##answer
+   
 
-        ##
+
+class AnswerRedis(HashModel):
+    question_id: int
+    answer: str 
+    
+    class Meta: 
+        database: redis_db

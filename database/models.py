@@ -109,7 +109,7 @@ class Result(Base):
     id = Column(Integer, primary_key=True, index=True,unique=True)
     company_id = Column(Integer, ForeignKey("companies.id",ondelete="CASCADE"))
     quiz_id = Column(Integer, ForeignKey("quizzes.id",ondelete="CASCADE"))
-
+    date_solved = Column(DateTime(timezone=True),server_default=func.now())
     result = Column(Integer)
 
     user_id = Column(Integer, ForeignKey("users.id",ondelete="CASCADE"))
@@ -119,6 +119,7 @@ class Result(Base):
 
     quiz = relationship("Quizz",back_populates='result')
     
+
     @hybrid_property
     def mean_result(self):
         return (sum(x) for x in self.result)/len(self.result)

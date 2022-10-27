@@ -14,18 +14,22 @@ class ResultCreate(BaseModel):
     company_id: int
     quiz_id: int
     user_id: int 
-    result: int
+    score: int
 
 
 class UserResult(BaseModel):
     company_id: int
     quiz_id: int
-    result: int
+    score: int
 
 
 class QuizResult(BaseModel):
     company_id: int
     user_id: int 
     result: int
+
+
+
+
     
 

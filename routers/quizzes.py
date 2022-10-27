@@ -10,7 +10,7 @@ from authentication.auth import AuthHandler
 from database.models import members,questions
 
 from database.database import database as get_db
-
+from schemas.quizzes import AnswerRedis
 auth_handler = AuthHandler()
 router = APIRouter()
 
@@ -113,8 +113,14 @@ async def update_quiz(id: int,quiz:quiz_schemas.QuizUpdate,current_user_email=De
 
 
 @router.post("/solve/quiz")
-async def create_question(answer: quiz_schemas.AnswerSheet,current_user_email=Depends(auth_handler.get_current_user))->result_schemas.Result:
+async def solve_quiz(answer: quiz_schemas.AnswerSheet,current_user_email=Depends(auth_handler.get_current_user))->result_schemas.Result:
     crud = User_Crud(get_db)
     user = await crud.get_user_by_email(email=current_user_email)
     results = await Quiz_Crud(db=get_db).solve_quiz(answer=answer,user=user)
+    
     return results
+
+
+@router.post("/task")
+async def create(task: AnswerRedis):
+    return task.save()

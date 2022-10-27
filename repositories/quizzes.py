@@ -1,4 +1,6 @@
+from asyncio import Task
 from datetime import datetime
+from venv import create
 from sqlalchemy.orm import Session
 from repositories.companies import Company_Crud
 
@@ -11,7 +13,7 @@ from fastapi import HTTPException,status
 from users import hashing
 from database.database import database
 from database.models import users,companies,members,invites,quizzes,questions,results
-
+from schemas.quizzes import AnswerRedis
 
 
 class Quiz_Crud():
@@ -106,6 +108,11 @@ class Quiz_Crud():
             quiz_questions  = active_quiz.questions
             user_answers = answer.answers
             for user_answers,question in zip(user_answers,quiz_questions):
+                answer_redis =  AnswerRedis(question_id=user_answers.question_id,
+                                            answer = user_answers.answer
+                                                )
+                print(answer_redis)
+                await self.create(answer_redis=answer_redis)
                 if user_answers.question_id == question.id and user_answers.answer == question.answer:
                     score+=1
             db_result = results.insert().values(
@@ -122,4 +129,5 @@ class Quiz_Crud():
                                         quiz_id=active_quiz.id
                                         )
              
-            
+        async def create(answer_redis: AnswerRedis):
+            return answer_redis.save()
