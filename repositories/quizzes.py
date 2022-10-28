@@ -1,9 +1,10 @@
 from asyncio import Task
 from datetime import datetime
+from unittest import result
 from venv import create
 from sqlalchemy.orm import Session
 from repositories.companies import Company_Crud
-
+from sqlalchemy import select, func
 from schemas import quizzes as quiz_schemas
 from schemas import companies as company_schemas
 from schemas import results as result_schemas
@@ -11,9 +12,9 @@ from schemas import users as user_schemas
 from typing import List
 from fastapi import HTTPException,status
 from users import hashing
-from database.database import database
-from database.models import users,companies,members,invites,quizzes,questions,results
-from schemas.quizzes import AnswerRedis
+from database.database import redis_db
+from database.models import users,companies,quizzes,questions,results,mean_results
+
 
 
 class Quiz_Crud():
@@ -107,12 +108,10 @@ class Quiz_Crud():
             active_quiz = await self.get_quiz_by_id(id=answer.quiz_id)
             quiz_questions  = active_quiz.questions
             user_answers = answer.answers
+            ##writing answers to redis
+            await self.write_answers_redis(user_id=user.id,answer=answer)
+
             for user_answers,question in zip(user_answers,quiz_questions):
-                answer_redis =  AnswerRedis(question_id=user_answers.question_id,
-                                            answer = user_answers.answer
-                                                )
-                print(answer_redis)
-                await self.create(answer_redis=answer_redis)
                 if user_answers.question_id == question.id and user_answers.answer == question.answer:
                     score+=1
             db_result = results.insert().values(
@@ -121,6 +120,11 @@ class Quiz_Crud():
                  user_id=user.id,
                  result=score
                  )
+            ##calculate mean result
+            all_questions_by_quiz =  await self.db.fetch_all(questions.select().where(questions.c.quiz_id == answer.quiz_id )) 
+            questions_length = len(all_questions_by_quiz)
+            await self.calculate_mean_result(user=user,current_quiz=result_schemas.Mean_Result(user_id=user.id,num_of_qs=questions_length,num_of_ans=score))
+            
             result_id = await self.db.execute(db_result)
             return  result_schemas.Result(id=result_id,
                                         user_id=user.id,
@@ -129,5 +133,45 @@ class Quiz_Crud():
                                         quiz_id=active_quiz.id
                                         )
              
-        async def create(answer_redis: AnswerRedis):
-            return answer_redis.save()
+      
+        async def write_answers_redis(self,user_id:int,answer:quiz_schemas.AnswerSheet)->str:
+            user_answers = answer.answers
+            for user_answers in user_answers:
+                await redis_db.set(f'{user_id}', f"{user_answers.question_id}:{user_answers.answer}")
+                await redis_db.close()
+                return "successfully written data into Redis Database"
+
+        async def calculate_mean_result(self,current_quiz:result_schemas.Mean_Result,user:user_schemas.User)->result_schemas.Mean_ResultCreate:
+            mean_result_model = await self.db.fetch_one(mean_results.select().where(mean_results.c.user_id == user.id))
+            if not mean_result_model:
+                query_1 = mean_results.insert().values(
+                user_id=user.id,
+                num_of_qs=current_quiz.num_of_qs,
+                num_of_ans=current_quiz.num_of_ans,
+                )
+                id = await self.db.execute(query_1)
+                new_mean_score = current_quiz.num_of_ans/current_quiz.num_of_qs
+                new_mean_score_percentage = int(new_mean_score*100)
+                query = users.update().where(users.c.id == user.id).values(
+                mean_result=new_mean_score_percentage
+                )
+                await self.db.execute(query)
+                return result_schemas.Mean_ResultCreate(**current_quiz.dict(),id=id)
+
+            new_num_of_qs = mean_result_model.num_of_qs+current_quiz.num_of_qs
+            new_num_of_ans = mean_result_model.num_of_ans+current_quiz.num_of_ans
+                
+            query_1 = mean_results.update().where(mean_results.c.id == mean_result_model.id).values(
+            num_of_qs=new_num_of_qs,
+            num_of_ans=new_num_of_ans,
+            )
+            id = await self.db.execute(query_1)
+            new_mean_score = new_num_of_ans/new_num_of_qs
+            new_mean_score_percentage = int(new_mean_score*100)
+            query = users.update().where(users.c.id == user.id).values(
+            mean_result=new_mean_score_percentage
+            )
+            await self.db.execute(query)
+            return  result_schemas.Mean_Result(**dict(mean_result_model))
+            
+                

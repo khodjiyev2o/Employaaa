@@ -7,8 +7,7 @@ from .results import QuizResult
 
 
 
-from redis_om import HashModel
-from database.database import redis_db
+
 
 
 
@@ -87,9 +86,4 @@ class AnswerSheet(BaseModel):
    
 
 
-class AnswerRedis(HashModel):
-    question_id: int
-    answer: str 
-    
-    class Meta: 
-        database: redis_db
+

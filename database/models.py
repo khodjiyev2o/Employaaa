@@ -1,10 +1,10 @@
-from email.mime import application
-from sqlalchemy import Column, DateTime,Integer, String,ForeignKey,Boolean
+
+from sqlalchemy import Column, DateTime,Integer, String,ForeignKey,Boolean, select, func
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.sql import func
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship,column_property
 from sqlalchemy.dialects.postgresql import ARRAY
-from sqlalchemy.ext.hybrid import hybrid_property
+
 
 Base = declarative_base()
 
@@ -21,7 +21,7 @@ class User(Base):
     updated_at = Column(DateTime(timezone=True),onupdate=func.now())
     invite = relationship("Invite",back_populates='user')
     result = relationship("Result",back_populates='user')
-
+    mean_result = Column(Integer)
 
 users=User.__table__
 
@@ -40,7 +40,7 @@ class Company(Base):
     application = relationship("Invite",back_populates='company')
     members = relationship("Member",back_populates='company')
     quiz = relationship("Quizz",back_populates='company')
-
+   
 
 companies=Company.__table__
 
@@ -73,23 +73,6 @@ class Invite(Base):
 invites = Invite.__table__
 
 
-
-
-class Quizz(Base):
-    __tablename__ = "quizzes"
-    id = Column(Integer, primary_key=True, index=True,unique=True)
-    name =  description = Column(String,unique=True)
-    description =  Column(String)
-    frequency = Column(Integer)
-    questions = relationship("Question",back_populates='quiz')
-    company_id = Column(Integer, ForeignKey("companies.id",ondelete="CASCADE"))
-
-
-    company = relationship("Company",back_populates='quiz')
-    result = relationship("Result",back_populates='quiz')
-
-quizzes = Quizz.__table__
-
 class Question(Base):
     __tablename__ = "questions"
     id = Column(Integer, primary_key=True, index=True,unique=True)
@@ -100,8 +83,36 @@ class Question(Base):
 
     answer = Column(String)
     options = Column(ARRAY(String),nullable=False,)
-  
+    
+
 questions = Question.__table__
+
+class Quizz(Base):
+    __tablename__ = "quizzes"
+    id = Column(Integer, primary_key=True, index=True,unique=True)
+    name =  description = Column(String,unique=True)
+    description =  Column(String)
+    frequency = Column(Integer)
+    questions = relationship("Question",back_populates='quiz')
+    company_id = Column(Integer, ForeignKey("companies.id",ondelete="CASCADE"))
+    
+    question_count = column_property(
+        select(func.count(Question.id))
+        .where(Question.quiz_id == id)
+        .correlate_except(Question)
+        .scalar_subquery()
+    )
+
+    company = relationship("Company",back_populates='quiz')
+    result = relationship("Result",back_populates='quiz')
+
+  
+        
+quizzes = Quizz.__table__
+
+
+
+
 
 
 class Result(Base):
@@ -120,9 +131,16 @@ class Result(Base):
     quiz = relationship("Quizz",back_populates='result')
     
 
-    @hybrid_property
-    def mean_result(self):
-        return (sum(x) for x in self.result)/len(self.result)
-
+    
 
 results = Result.__table__
+
+
+class Mean_Result(Base):
+    __tablename__ = "mean_results"
+    id = Column(Integer, primary_key=True, index=True,unique=True)
+    user_id = Column(Integer, ForeignKey("users.id",ondelete="CASCADE"))
+    num_of_qs = Column(Integer)
+    num_of_ans = Column(Integer)
+
+mean_results = Mean_Result.__table__

@@ -8,9 +8,9 @@ from repositories.users import User_Crud
 from repositories.quizzes import Quiz_Crud
 from authentication.auth import AuthHandler
 from database.models import members,questions
-
+from database.database import redis_db
 from database.database import database as get_db
-from schemas.quizzes import AnswerRedis
+from sqlalchemy import select, func
 auth_handler = AuthHandler()
 router = APIRouter()
 
@@ -120,7 +120,3 @@ async def solve_quiz(answer: quiz_schemas.AnswerSheet,current_user_email=Depends
     
     return results
 
-
-@router.post("/task")
-async def create(task: AnswerRedis):
-    return task.save()

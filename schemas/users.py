@@ -20,7 +20,7 @@ class User(BaseModel):
     email: str
     invite:Optional[list[InviteOut]]
     result:Optional[list[UserResult]]
-         
+    mean_result: Optional[int]    
     class Config:
         orm_mode = True
 

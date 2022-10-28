@@ -20,7 +20,7 @@ class ResultCreate(BaseModel):
 class UserResult(BaseModel):
     company_id: int
     quiz_id: int
-    score: int
+    result: int
 
 
 class QuizResult(BaseModel):
@@ -30,6 +30,13 @@ class QuizResult(BaseModel):
 
 
 
+class Mean_Result(BaseModel):
+    user_id: int 
+    num_of_qs: int
+    num_of_ans: int
 
-    
+
+class Mean_ResultCreate(Mean_Result):
+       id: int
+
 

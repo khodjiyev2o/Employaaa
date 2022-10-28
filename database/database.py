@@ -4,8 +4,7 @@ import sqlalchemy
 from dotenv import load_dotenv
 import os
 from sqlalchemy.orm import sessionmaker
-import asyncio
-from redis_om import get_redis_connection
+import aioredis
 
 
 
@@ -35,6 +34,5 @@ def get_db():
 
 
 
-redis_db =  get_redis_connection(
-    host= 'localhost', port='6379'
-)
+redis_db = aioredis.from_url(os.environ.get("REDIS_URL"))
+
