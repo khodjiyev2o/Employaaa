@@ -199,7 +199,7 @@ class Quiz_Crud():
                 data = dict(data)
                 if data:
                     for i in data:
-                        arr = [i,data[i],id]    
+                        arr = [id,i,data[i]]    
                         user_data.append(arr)
              
              csv = await self.write_csv(user_id=id,user_data=user_data,column_names=column_names,file_name="all_users_results")
