@@ -147,8 +147,19 @@ async def get_result_of_user(user_id:int,company_id:int,current_user_email=Depen
 
 
 @router.get("get_all_results_of_user")
-async def get_all_results_of_users(company_id:int)->StreamingResponse:
+async def get_all_results_of_users(company_id:int,current_user_email=Depends(auth_handler.get_current_user))->StreamingResponse:
     company_crud = Company_Crud(get_db)
+    crud = User_Crud(get_db)
     company = await company_crud.get_company_by_id(id=company_id)
+    current_user = await crud.get_user_by_email(email=current_user_email)
+    member = await get_db.fetch_one(members.select().where(members.c.user_id == current_user.id,members.c.company_id == company.id))
+    if current_user.id != company.owner_id:
+        try:
+            if current_user.id == member.user_id and member.is_admin == True :
+                return await Quiz_Crud(db=get_db).get_all_results_of_users(company=company)
+            else: 
+                raise HTTPException(status_code=403, detail="User is not authorized to get  all  users's results!")
+        except AttributeError:
+                raise  HTTPException(status_code=403, detail="User is not authorized to get  another user's results!")
     csv = await Quiz_Crud(db=get_db).get_all_results_of_users(company=company)
     return csv
