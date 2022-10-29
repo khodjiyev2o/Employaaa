@@ -1,3 +1,5 @@
+from curses.ascii import HT
+from signal import raise_signal
 from fastapi import APIRouter,Depends,HTTPException,status
 from typing import  List
 from schemas import quizzes as quiz_schemas
@@ -10,7 +12,9 @@ from authentication.auth import AuthHandler
 from database.models import members,questions
 from database.database import redis_db
 from database.database import database as get_db
-from sqlalchemy import select, func
+from fastapi.responses import StreamingResponse
+
+
 auth_handler = AuthHandler()
 router = APIRouter()
 
@@ -102,7 +106,7 @@ async def update_quiz(id: int,quiz:quiz_schemas.QuizUpdate,current_user_email=De
     member = await get_db.fetch_one(members.select().where(members.c.user_id == current_user.id,members.c.company_id == company.id))
     if current_user.id != company.owner_id:
         try:
-            if current_user.id == member.user_id :
+            if current_user.id == member.user_id and  member.is_admin == True :
                 return await Quiz_Crud(get_db).update_quiz(quiz=quiz,id=id)
         except AttributeError:
                 raise  HTTPException(status_code=403, detail="User is not authorized to update another user's company!")
@@ -120,3 +124,31 @@ async def solve_quiz(answer: quiz_schemas.AnswerSheet,current_user_email=Depends
     
     return results
 
+
+@router.get("get_csv_for_user")
+async def get_result_of_user(user_id:int,company_id:int,current_user_email=Depends(auth_handler.get_current_user))->StreamingResponse: 
+    crud = User_Crud(get_db)
+    company_crud = Company_Crud(get_db)
+    company = await company_crud.get_company_by_id(id=company_id)
+    current_user = await crud.get_user_by_email(email=current_user_email)
+    member = await get_db.fetch_one(members.select().where(members.c.user_id == current_user.id,members.c.company_id == company.id))
+    if current_user.id != company.owner_id:
+        try:
+            if current_user.id == member.user_id and member.is_admin == True :
+                return await Quiz_Crud(db=get_db).get_result_of_user(user_id=user_id)
+        except AttributeError:
+                raise  HTTPException(status_code=403, detail="User is not authorized to get  another user's results!")
+    if current_user.id != user_id:
+        raise HTTPException(403,detail=f"You are not allowed to get the results of this user")
+    csv = await Quiz_Crud(db=get_db).get_result_of_user(user_id=user_id)
+    return csv 
+
+
+
+
+@router.get("get_all_results_of_user")
+async def get_all_results_of_users(company_id:int)->StreamingResponse:
+    company_crud = Company_Crud(get_db)
+    company = await company_crud.get_company_by_id(id=company_id)
+    csv = await Quiz_Crud(db=get_db).get_all_results_of_users(company=company)
+    return csv
