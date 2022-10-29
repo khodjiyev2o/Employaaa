@@ -14,7 +14,7 @@ from fastapi import HTTPException,status
 from users import hashing
 from database.database import redis_db
 from database.models import users,companies,quizzes,questions,results,mean_results
-
+from datetime import timedelta
 
 
 class Quiz_Crud():
@@ -136,10 +136,13 @@ class Quiz_Crud():
       
         async def write_answers_redis(self,user_id:int,answer:quiz_schemas.AnswerSheet)->str:
             user_answers = answer.answers
-            for user_answers in user_answers:
-                await redis_db.set(f'{user_id}', f"{user_answers.question_id}:{user_answers.answer}")
-                await redis_db.close()
-                return "successfully written data into Redis Database"
+            my_list = []
+            for i in user_answers:
+                    mydict = {i.question_id:i.answer}
+                    my_list.append(mydict)
+            await redis_db.set(f'{user_id}', f"{my_list}")
+            await redis_db.expire(f'{user_id}',timedelta(hours=48))
+            await redis_db.close()
 
         async def calculate_mean_result(self,current_quiz:result_schemas.Mean_Result,user:user_schemas.User)->result_schemas.Mean_ResultCreate:
             mean_result_model = await self.db.fetch_one(mean_results.select().where(mean_results.c.user_id == user.id))
