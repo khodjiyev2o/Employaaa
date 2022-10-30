@@ -122,7 +122,7 @@ class Result(Base):
     quiz_id = Column(Integer, ForeignKey("quizzes.id",ondelete="CASCADE"))
     date_solved = Column(DateTime(timezone=True),server_default=func.now())
     result = Column(Integer)
-
+    mean_result = Column(Integer)
     user_id = Column(Integer, ForeignKey("users.id",ondelete="CASCADE"))
     
     user = relationship("User",back_populates='result')
@@ -142,5 +142,7 @@ class Mean_Result(Base):
     user_id = Column(Integer, ForeignKey("users.id",ondelete="CASCADE"))
     num_of_qs = Column(Integer)
     num_of_ans = Column(Integer)
-
+    mean_result = Column(Integer)
+    first_time_solved = Column(DateTime(timezone=True),server_default=func.now())
+    last_time_solved = Column(DateTime(timezone=True),onupdate=func.now(),server_default=func.now())
 mean_results = Mean_Result.__table__

@@ -37,26 +37,20 @@ async def create_company(company: schemas.CompanyCreate,current_user_email=Depen
 @router.patch("/update/{id}",response_model=schemas.Company)
 async def update_company(id:int,company: schemas.CompanyUpdate,current_user_email=Depends(auth_handler.get_current_user))->schemas.Company:
     company_crud = Company_Crud(get_db)
-    active_company = await company_crud.get_company_by_id(id=id)
-    if not active_company:
-        raise HTTPException(status_code=404, detail=f"Company with name {id} not found")
     user = await User_Crud(db=get_db).get_user_by_email(email=current_user_email)
-    if user.id != active_company.owner_id:
-        raise  HTTPException(status_code=403, detail="User is not authorized to update another user's company!")
-    return await company_crud.update_company(company=company,id=id)
+    owner = await company_crud.check_for_owner(company_id=id,user_id=user.id)
+    if owner is True:
+        return await company_crud.update_company(company=company,id=id)
 
 
 
 @router.delete("/delete/{id}")
 async def delete_company(id: int,current_user_email=Depends(auth_handler.get_current_user))->HTTPException:
     company_crud = Company_Crud(get_db)
-    active_company = await company_crud.get_company_by_id(id=id)
-    if not active_company:
-        raise HTTPException(status_code=404, detail=f"Company with id {id} not found")
-    current_user = await User_Crud(db=get_db).get_user_by_email(email=current_user_email)
-    if current_user.id != active_company.owner_id :
-        raise  HTTPException(status_code=403, detail="User is not authorized to delete another user's company!")
-    return await company_crud.delete_company(id=id)
+    user = await User_Crud(db=get_db).get_user_by_email(email=current_user_email)
+    owner =  await company_crud.check_for_owner(company_id=id,user_id=user.id)
+    if owner is True:
+        return await company_crud.delete_company(id=id)
 
 @router.get("/{name}/",response_model=schemas.Company)
 async def get_company_by_name(name: str,user_email=Depends(auth_handler.auth_wrapper))->schemas.Company:
@@ -80,25 +74,19 @@ async def get_all_members(skip: int = 0, limit: int = 100)->List[member_schemas.
 async def invite_user(invite: invite_schemas.InviteCreate,current_user_email=Depends(auth_handler.get_current_user))->invite_schemas.Invite:
     company_crud = Company_Crud(get_db)
     user = await User_Crud(db=get_db).get_user_by_email(email=current_user_email)
-    company = await company_crud.get_company_by_id(id=invite.company_id)
-    if user.id != company.owner_id:
-        raise  HTTPException(status_code=403, detail="User is not authorized to invite other users to this company!")
-    if invite.user_id == user.id:
-        raise HTTPException(status_code=403, detail="User cannot invite himself to the company,he is already in the company!")
-    return await company_crud.invite_user(invite)
+    owner = await company_crud.check_for_owner(company_id=invite.company_id,user_id=user.id)
+    if owner is True:
+        return await company_crud.invite_user(invite)
 
 
 
 @router.delete("/delete/member/")
 async def delete_member(member:member_schemas.MemberDelete,current_user_email=Depends(auth_handler.get_current_user))->HTTPException:
     company_crud = Company_Crud(get_db)
-    active_company = await company_crud.get_company_by_id(id=member.company_id)
-    if not active_company:
-        raise HTTPException(status_code=404, detail=f"Company with name {id} not found")
-    current_user = await User_Crud(db=get_db).get_user_by_email(email=current_user_email)
-    if current_user.id != active_company.owner_id :
-        raise  HTTPException(status_code=403, detail="User is not authorized to delete members from the  company with id {}!")
-    return await company_crud.de(member=member)
+    user = await User_Crud(db=get_db).get_user_by_email(email=current_user_email)
+    owner = await company_crud.check_for_owner(company_id=member.company_id,user_id=user.id)
+    if owner is True:
+        return await company_crud.de(member=member)
 
 
 
@@ -107,23 +95,18 @@ async def delete_member(member:member_schemas.MemberDelete,current_user_email=De
 async def accept_user(application: invite_schemas.InviteCreate,current_user_email=Depends(auth_handler.get_current_user))->member_schemas.MemberOut:
     company_crud = Company_Crud(get_db)
     user = await User_Crud(db=get_db).get_user_by_email(email=current_user_email)
-    company = await company_crud.get_company_by_id(id=application.company_id)
-    if user.id != company.owner_id:
-        raise  HTTPException(status_code=403, detail="User is not authorized to accept other users to this company!")
-    if application.user_id == user.id:
-        raise HTTPException(status_code=403, detail="User cannot accept himself to the company,he is already in the company!")
-    return await company_crud.accept_user(application)
+    owner = await company_crud.check_for_owner(company_id=application.company_id,user_id=user.id)
+    if owner is True:
+        return await company_crud.accept_user(application)
+
 
 @router.post("/update/admin/")
 async def update_admin(member: member_schemas.MemberUpdate,current_user_email=Depends(auth_handler.get_current_user))->member_schemas.Member:
     company_crud = Company_Crud(get_db)
-    active_company = await company_crud.get_company_by_id(id=member.company_id)
-    if not active_company:
-        raise HTTPException(status_code=404, detail=f"Company with name {id} not found")
     user = await User_Crud(db=get_db).get_user_by_email(email=current_user_email)
-    if user.id != active_company.owner_id:
-        raise  HTTPException(status_code=403, detail="User is not authorized to make  user admin!")
-    return await company_crud.update_admin(member=member)
+    owner = await company_crud.check_for_owner(company_id=member.company_id,user_id=user.id)
+    if owner is True:
+        return await company_crud.update_admin(member=member)
 
 
 ##decline the user's application
@@ -132,11 +115,29 @@ async def update_admin(member: member_schemas.MemberUpdate,current_user_email=De
 async def refuse_user(invite: invite_schemas.InviteCreate,current_user_email=Depends(auth_handler.get_current_user))->HTTPException:
     crud = User_Crud(get_db)
     company_crud = Company_Crud(get_db)
-    current_user = await crud.get_user_by_email(email=current_user_email)
-    company = await company_crud.get_company_by_id(id=invite.company_id)
-    if current_user.id != company.owner_id :
-        raise  HTTPException(status_code=403, detail="User is not authorized to refuse another user's application!")
-    return await crud.decline_invite(invite=invite)
+    user = await crud.get_user_by_email(email=current_user_email)
+    owner = await company_crud.check_for_owner(company_id=invite.company_id,user_id=user.id)
+    if owner is True:
+        return await crud.decline_invite(invite=invite)
+
+
+@router.get("/get_members/time_solved")
+async def get_members_time_solved(company_id: int,user_email=Depends(auth_handler.auth_wrapper))->List[member_schemas.MemberwithTime]:
+    company_crud = Company_Crud(get_db)
+    user = await User_Crud(db=get_db).get_user_by_email(email=user_email)
+    owner = await company_crud.check_for_owner(company_id=company_id,user_id=user.id)
+    if owner is True:
+        print("i am inside crud functionality")
+        return await company_crud.get_members_with_time(company_id=company_id)
+
+
+
+@router.get("/total_mean_result_off_all")
+async def get_members_time_solved(skip: int = 0, limit: int = 100)->int:
+    company_crud = Company_Crud(db=get_db)
+    return await company_crud.total_mean_result_off_all()
+
+
 
 
 

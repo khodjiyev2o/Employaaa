@@ -1,5 +1,5 @@
 from asyncio import Task
-from datetime import datetime
+from datetime import date, datetime
 from unittest import result
 from venv import create
 from sqlalchemy.orm import Session
@@ -112,24 +112,21 @@ class Quiz_Crud():
             for user_answers,question in zip(user_answers,quiz_questions):
                 if user_answers.question_id == question.id and user_answers.answer == question.answer:
                     score+=1
+            
+            ##calculate mean result
+            all_questions_by_quiz =  await self.db.fetch_all(questions.select().where(questions.c.quiz_id == answer.quiz_id )) 
+            questions_length = len(all_questions_by_quiz)
+            mean_result = await self.calculate_mean_result(user=user,current_quiz=result_schemas.Mean_Result(user_id=user.id,num_of_qs=questions_length,num_of_ans=score,mean_result=0))
+            
             db_result = results.insert().values(
                  company_id=active_quiz.company_id,
                  quiz_id=answer.quiz_id,
                  user_id=user.id,
-                 result=score
+                 result=score,
+                 mean_result=mean_result,
                  )
-            ##calculate mean result
-            all_questions_by_quiz =  await self.db.fetch_all(questions.select().where(questions.c.quiz_id == answer.quiz_id )) 
-            questions_length = len(all_questions_by_quiz)
-            await self.calculate_mean_result(user=user,current_quiz=result_schemas.Mean_Result(user_id=user.id,num_of_qs=questions_length,num_of_ans=score))
-            
             result_id = await self.db.execute(db_result)
-            return  result_schemas.Result(id=result_id,
-                                        user_id=user.id,
-                                        company_id=active_quiz.company_id,
-                                        result=score,
-                                        quiz_id=active_quiz.id
-                                        )
+            return  result_schemas.Result(id=result_id,user_id=user.id,company_id=active_quiz.company_id,result=score,quiz_id=active_quiz.id,mean_result=mean_result,date_solved=datetime.utcnow())
              
       
         async def write_answers_redis(self,user_id:int,answer:quiz_schemas.AnswerSheet)->str:
@@ -143,18 +140,18 @@ class Quiz_Crud():
             await redis_db.close()
            
 
-
-        async def calculate_mean_result(self,current_quiz:result_schemas.Mean_Result,user:user_schemas.User)->result_schemas.Mean_ResultCreate:
+        async def calculate_mean_result(self,current_quiz:result_schemas.Mean_Result,user:user_schemas.User)->int:
             mean_result_model = await self.db.fetch_one(mean_results.select().where(mean_results.c.user_id == user.id))
             if not mean_result_model:
+                new_mean_score = current_quiz.num_of_ans/current_quiz.num_of_qs
+                new_mean_score_percentage = int(new_mean_score*100)
                 query_1 = mean_results.insert().values(
                 user_id=user.id,
                 num_of_qs=current_quiz.num_of_qs,
                 num_of_ans=current_quiz.num_of_ans,
+                mean_result = new_mean_score_percentage,
                 )
                 id = await self.db.execute(query_1)
-                new_mean_score = current_quiz.num_of_ans/current_quiz.num_of_qs
-                new_mean_score_percentage = int(new_mean_score*100)
                 query = users.update().where(users.c.id == user.id).values(
                 mean_result=new_mean_score_percentage
                 )
@@ -163,20 +160,20 @@ class Quiz_Crud():
 
             new_num_of_qs = mean_result_model.num_of_qs+current_quiz.num_of_qs
             new_num_of_ans = mean_result_model.num_of_ans+current_quiz.num_of_ans
-                
+            new_mean_score_percentage = int((new_num_of_ans/new_num_of_qs)*100)
             query_1 = mean_results.update().where(mean_results.c.id == mean_result_model.id).values(
             num_of_qs=new_num_of_qs,
             num_of_ans=new_num_of_ans,
+            mean_result = new_mean_score_percentage,
             )
             id = await self.db.execute(query_1)
-            new_mean_score = new_num_of_ans/new_num_of_qs
-            new_mean_score_percentage = int(new_mean_score*100)
+            
             query = users.update().where(users.c.id == user.id).values(
             mean_result=new_mean_score_percentage
             )
             await self.db.execute(query)
-            return  result_schemas.Mean_Result(**dict(mean_result_model))
-
+            mean_result_model.meanresult == new_mean_score_percentage
+            return  new_mean_score_percentage
 
         async def get_result_of_user(self,user_id)->StreamingResponse:
             data = await redis_db.hgetall(f'{user_id}')
@@ -187,7 +184,8 @@ class Quiz_Crud():
                 arr = [i,data[i]]    
                 user_data.append(arr)
             csv = await self.write_csv(user_id=user_id,user_data=user_data,column_names=column_names,file_name=user_id)
-            
+            return csv 
+
 
         async def get_all_results_of_users(self,company)->StreamingResponse:
              list_of_members = await self.db.fetch_all(members.select().where(members.c.company_id == company.id))
@@ -205,7 +203,13 @@ class Quiz_Crud():
              csv = await self.write_csv(user_id=id,user_data=user_data,column_names=column_names,file_name="all_users_results")
              return csv
 
+
         async def write_csv(self,user_id:int,user_data:list,column_names:list,file_name:str)->StreamingResponse:
+
+
+
+
+
             with open(f'{file_name}.csv','w',encoding="UTF-8",newline="") as f :
                 writer = csv.writer(f)
                 writer.writerow(column_names)
@@ -216,3 +220,5 @@ class Quiz_Crud():
                 "Content-Disposition": "attachment; filename={file_name}.csv".format(file_name=file_name)
             }
             return StreamingResponse(csv_file, headers=export_headers, media_type=export_media_type)
+
+

@@ -1,4 +1,5 @@
 from datetime import datetime
+from xmlrpc.client import Boolean
 from sqlalchemy.orm import Session
 
 from schemas import users as user_schemas
@@ -8,7 +9,7 @@ from schemas import invites as invite_schemas
 from typing import List
 from fastapi import HTTPException,status
 from users import hashing
-from database.models import Invite, users,companies,members,invites
+from database.models import Invite, users,companies,members,invites,mean_results
 
 
 
@@ -111,6 +112,32 @@ class Company_Crud():
                  raise HTTPException(status_code=404, detail=f"Member with User id {member.user_id} not found")
             return member_schemas.Member(**dict(member))
 
+        async def get_members_with_time(self,company_id:int)->List[member_schemas.MemberwithTime]:
+            all_members = await self.db.fetch_all(members.select().where(members.c.company_id == company_id))
+            list_of_members_with_time = []
+            for member in all_members:
+                try:
+                    result = await self.db.fetch_one(mean_results.select().where(mean_results.c.user_id == member.user_id))
+                    if result:
+                        if result.last_time_solved:
+                            last_time_solved=result.last_time_solved
+                        elif result.first_time_solved:
+                            last_time_solved=result.first_time_solved
+                        else:
+                            last_time_solved=None
+                        list_of_members_with_time.append(member_schemas.MemberwithTime(user_id=member.user_id,last_time_solved=last_time_solved)) 
+                except TypeError:
+                    pass                
+            return list_of_members_with_time
+
+
+        async def total_mean_result_off_all(self,skip: int = 0, limit: int = 100)->int:
+            all_results = await self.db.fetch_all(mean_results.select().offset(skip).limit(limit))
+            sum_of_ques = sum([result.num_of_qs for result in all_results])
+            sum_of_ans = sum([result.num_of_ans for result in all_results])
+            total_mean_score = int((sum_of_ans/sum_of_ques)*100)
+            return total_mean_score
+
         ##make admin
         async def update_admin(self,member:member_schemas.MemberUpdate)->member_schemas.Member:
             active_member =  await self.db.fetch_one(members.select().where(members.c.company_id == member.company_id,members.c.user_id == member.user_id))
@@ -122,4 +149,14 @@ class Company_Crud():
             )
             await self.db.execute(query)
             return await self.get_member(member=member)
+
+        
+        async def check_for_owner(self,company_id:int,user_id:int)->Boolean:
+            active_company = await self.get_company_by_id(id=company_id)
+            if not active_company:
+                raise HTTPException(status_code=404, detail=f"Company with id {id} not found")
+            if user_id != active_company.owner_id :
+                raise  HTTPException(status_code=403, detail="User is not authorized to delete another user's company!")
+            return True
              
+

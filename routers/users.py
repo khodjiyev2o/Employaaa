@@ -2,7 +2,7 @@ from fastapi import APIRouter,Depends,HTTPException,status
 from typing import  List
 from schemas import users as schemas
 from schemas import invites as invite_schemas
-from database import database
+from schemas import results as result_schemas 
 from repositories.users import User_Crud as Crud
 from repositories.companies import Company_Crud as Company_Crud
 from authentication.auth import AuthHandler
@@ -21,6 +21,28 @@ router = APIRouter(
 
 
 
+#USER ANALYTICS 
+@router.get("/all-users/mean-result",response_model=List[result_schemas.AllUserMeanResult])
+async def users_mean_results(skip: int = 0, limit: int = 100,user_email=Depends(auth_handler.auth_wrapper))->List[result_schemas.AllUserMeanResult]:
+    crud = Crud(get_db)
+    users = await crud.get_all_users_mean_result(skip=skip,limit=limit)
+    return users 
+
+@router.get('/get_user/mean_results/from_all_quizzes',response_model=List[result_schemas.UserMeanResultQuiz])
+async def get_user_mean_results_from_all_quizzes(user_id:int,user_email=Depends(auth_handler.auth_wrapper))->List[result_schemas.Result]:
+    crud = Crud(get_db)
+    user = await crud.get_user_by_email(email=user_email)
+    if user_id != user.id:
+        raise HTTPException(status_code=403, detail="User is not authorized to get another user's account info!")
+    results = await crud.get_user_mean_result_from_all_quizzes(user_id=user_id)
+    return results 
+
+
+@router.get('get_user/mean_result_from/each_quiz',response_model=List[result_schemas.UserMeanResultAllQuiz])
+async def get_user_mean_result_from_each_quiz(user_id:int):
+    crud = Crud(get_db)
+    results = await crud.get_user_mean_result_from_each_quiz(user_id=user_id)
+    return results 
 
 @router.get("/all/", response_model=List[schemas.User])
 async def get_all_users(skip: int = 0, limit: int = 100,user_email=Depends(auth_handler.auth_wrapper))->List[schemas.User]:
@@ -98,6 +120,8 @@ async def decline_invite(invite: invite_schemas.InviteCreate,current_user_email=
     if current_user.id != invite.user_id :
         raise  HTTPException(status_code=403, detail="User is not authorized to decline another user's invite!")
     return await crud.decline_invite(invite=invite)
+
+
 
 
 
