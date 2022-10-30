@@ -2,6 +2,14 @@ from pickletools import int4
 from typing import Optional
 from pydantic import BaseModel,conlist
 
+from database.models import Base
+from .results import QuizResult
+
+
+
+
+
+
 
 class Question(BaseModel):
       id: int
@@ -43,14 +51,14 @@ class QuizCreate(Quiz):
     description: Optional[str]
     frequency:int
     company_id : int
-
+    questions: conlist(Question, min_items=2)
 
     class Config:
         orm_mode = True
 
 class QuizOut(Quiz):
     questions: conlist(Question, min_items=2)
-   
+    result: Optional[list[QuizResult]]
 
     class Config:
         orm_mode = True
@@ -64,3 +72,18 @@ class QuizUpdate(BaseModel):
 
     class Config:
         orm_mode = True
+
+class Answer(BaseModel):
+    question_id: int
+    answer: str
+
+        ##answer sheet :
+class AnswerSheet(BaseModel):
+    quiz_id: int
+    answers: Optional[list[Answer]]
+
+
+   
+
+
+

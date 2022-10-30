@@ -4,9 +4,10 @@ import sqlalchemy
 from dotenv import load_dotenv
 import os
 from sqlalchemy.orm import sessionmaker
-import asyncio
+import aioredis
 
-from sqlalchemy.ext.asyncio import create_async_engine
+
+
 load_dotenv()
 
 metadata = sqlalchemy.MetaData()
@@ -20,8 +21,9 @@ engine = create_engine(
     DATABASE_URL
 )
 
+
 SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False,)
-#SessionLocal.configure(bind=engine)
+
 
 def get_db():
     db = SessionLocal()
@@ -29,3 +31,8 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+
+redis_db = aioredis.from_url(os.environ.get("REDIS_URL"))
+

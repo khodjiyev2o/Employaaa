@@ -22,6 +22,8 @@ app.include_router(authentication.router)
 app.include_router(companies.router)
 app.include_router(quizzes.router)
 
+
+
 @app.on_event("startup")
 async def startup():
     await database.connect()

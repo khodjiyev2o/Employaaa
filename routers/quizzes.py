@@ -2,15 +2,15 @@ from fastapi import APIRouter,Depends,HTTPException,status
 from typing import  List
 from schemas import quizzes as quiz_schemas
 from schemas import companies as company_schemas
-
+from schemas import results as result_schemas
 from repositories.companies import Company_Crud  
 from repositories.users import User_Crud 
 from repositories.quizzes import Quiz_Crud
 from authentication.auth import AuthHandler
 from database.models import members,questions
-
+from database.database import redis_db
 from database.database import database as get_db
-
+from sqlalchemy import select, func
 auth_handler = AuthHandler()
 router = APIRouter()
 
@@ -36,7 +36,7 @@ async def get_all_quizzes_for_company_id(id:int,skip: int = 0, limit: int = 100,
     if current_user.id != company.owner_id :
         raise  HTTPException(status_code=403, detail="User is not authorized to delete another user's account!")
     company = await crud.get_all_quizzes_for_company_id(id=id,skip=skip, limit=limit)
-    return company_schemas.Company(**company)
+    return company
 
 
 @router.post("/create/",response_model=quiz_schemas.QuizCreate)
@@ -107,3 +107,16 @@ async def update_quiz(id: int,quiz:quiz_schemas.QuizUpdate,current_user_email=De
         except AttributeError:
                 raise  HTTPException(status_code=403, detail="User is not authorized to update another user's company!")
     return await Quiz_Crud(get_db).update_quiz(quiz=quiz,id=id)
+
+
+
+
+
+@router.post("/solve/quiz")
+async def solve_quiz(answer: quiz_schemas.AnswerSheet,current_user_email=Depends(auth_handler.get_current_user))->result_schemas.Result:
+    crud = User_Crud(get_db)
+    user = await crud.get_user_by_email(email=current_user_email)
+    results = await Quiz_Crud(db=get_db).solve_quiz(answer=answer,user=user)
+    
+    return results
+

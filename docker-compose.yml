@@ -50,9 +50,28 @@ services:
     image: redis:${REDIS_VERSION}
     volumes:
       - redis_data:/data
-    container_name: redis
+    ports:
+      - ${REDIS_PORT}:${REDIS_PORT}
+    command: ["redis-server", "--appendonly", "yes"]
+    container_name: redis_fastapi_db
+    restart: always
     networks:
       - practise
+
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: redis-ui
+    environment:
+      - REDIS_HOSTS=${REDIS_HOSTS}
+      - HTTP_USER=${HTTP_USER}
+      - HTTP_PASSWORD=${HTTP_PASSWORD}
+    ports:
+      - ${REDIS_COMMANDER_PORT}:${REDIS_COMMANDER_PORT}
+    depends_on:
+      - redis
+    networks:
+      - practise
+
 volumes:
   postgresql-data:
   redis_data:
