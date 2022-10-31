@@ -117,7 +117,7 @@ class User_Crud():
             list_of_results = await self.db.fetch_all(results.select().where(results.c.user_id == user_id))
             list_of_quiz_ids = [result.quiz_id for result in list_of_results]            
             unique_ids = []
-            _ = [unique_ids.append(id) for id in list_of_quiz_ids if id not in unique_ids]
+            list_comp = [unique_ids.append(id) for id in list_of_quiz_ids if id not in unique_ids]
             for quiz_id in unique_ids:
                 quizzes = await self.db.fetch_all(results.select().where(results.c.quiz_id == quiz_id,results.c.user_id == user_id))
                 times_solved = len(quizzes)
@@ -136,7 +136,7 @@ class User_Crud():
             list_of_results = await self.db.fetch_all(results.select().where(results.c.user_id == user_id))
             list_of_quiz_ids = [result.quiz_id for result in list_of_results]    
             unique_ids = []
-            _ = [unique_ids.append(id) for id in list_of_quiz_ids if id not in unique_ids]
+            list_comp = [unique_ids.append(id) for id in list_of_quiz_ids if id not in unique_ids]
             for quiz_id in unique_ids:
                 quizzes = await self.db.fetch_all(results.select().where(results.c.quiz_id == quiz_id,results.c.user_id == user_id))
                 times_solved = len(quizzes)
