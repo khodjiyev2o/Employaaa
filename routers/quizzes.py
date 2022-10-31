@@ -86,7 +86,13 @@ async def update_quiz(id: int,quiz:quiz_schemas.QuizUpdate,current_user_email=De
         return await Quiz_Crud(get_db).update_quiz(quiz=quiz,id=id)
 
 
-
+@router.get("/get_all_quizzes_of_user_with_time")
+async def get_all_quizzes_of_user_with_time(user_id:int,skip: int = 0, limit: int = 100,user_email=Depends(auth_handler.get_current_user))->quiz_schemas.QuizWithTime:
+        current_user = await User_Crud(db=get_db).get_user_by_email(email=user_email)
+        if current_user.id !=user_id:
+            raise HTTPException(403,detail="You are not authorized to get user's info")
+        quizzes = await Quiz_Crud(db=get_db).get_all_quizzes_with_time(user_id=user_id,skip=skip,limit=limit)
+        return quizzes
 
 
 @router.post("/solve/quiz")
@@ -115,3 +121,5 @@ async def get_all_results_of_users(company_id:int,current_user_email=Depends(aut
     if admin is True:
         csv = await Quiz_Crud(db=get_db).get_all_results_of_users(company=company)
         return csv
+
+

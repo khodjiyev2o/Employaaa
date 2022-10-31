@@ -140,6 +140,15 @@ class Quiz_Crud():
             await redis_db.close()
            
 
+        async def get_all_quizzes_with_time(self,user_id,skip: int = 0, limit: int = 100)->quiz_schemas.QuizWithTime:
+             quizzes = await self.db.fetch_all(results.select().offset(skip).limit(limit))
+             list_of_quiz_ids = [result.quiz_id for result in quizzes]            
+             unique_ids = []
+             _ = [unique_ids.append(id) for id in list_of_quiz_ids if id not in unique_ids]
+             for quiz_id in unique_ids:
+                quizzes = await self.db.fetch_all(results.select().where(results.c.quiz_id == quiz_id,results.c.user_id==user_id))
+                return [quiz_schemas.QuizWithTime(**result,last_time_solved=result.date_solved) for result in quizzes]
+
         async def calculate_mean_result(self,current_quiz:result_schemas.Mean_Result,user:user_schemas.User)->int:
             mean_result_model = await self.db.fetch_one(mean_results.select().where(mean_results.c.user_id == user.id))
             if not mean_result_model:
@@ -174,6 +183,7 @@ class Quiz_Crud():
             await self.db.execute(query)
             mean_result_model.meanresult == new_mean_score_percentage
             return  new_mean_score_percentage
+
 
         async def get_result_of_user(self,user_id)->StreamingResponse:
             data = await redis_db.hgetall(f'{user_id}')
