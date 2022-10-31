@@ -144,7 +144,7 @@ class Quiz_Crud():
              quizzes = await self.db.fetch_all(results.select().offset(skip).limit(limit))
              list_of_quiz_ids = [result.quiz_id for result in quizzes]            
              unique_ids = []
-             list_comp = [unique_ids.append(id) for id in list_of_quiz_ids if id not in unique_ids]
+             [unique_ids.append(id) for id in list_of_quiz_ids if id not in unique_ids]
              for quiz_id in unique_ids:
                 quizzes = await self.db.fetch_all(results.select().where(results.c.quiz_id == quiz_id,results.c.user_id==user_id))
                 return [quiz_schemas.QuizWithTime(**result,last_time_solved=result.date_solved) for result in quizzes]
