@@ -34,5 +34,5 @@ def get_db():
 
 
 
-redis_db = aioredis.from_url(os.environ.get("REDIS_URL"))
+redis_db = aioredis.from_url(os.environ.get("REDIS_URL"),decode_responses=True)
 

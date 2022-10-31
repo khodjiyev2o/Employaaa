@@ -1,10 +1,6 @@
+from datetime import datetime
 from typing import Optional,List
 from pydantic import BaseModel
-
-
-
-
-
 
 
 
@@ -41,4 +37,8 @@ class MemberUpdate(BaseModel):
     user_id: int
     company_id : int
     is_admin : bool = False
-    
+
+
+class MemberwithTime(BaseModel):
+    user_id: int
+    last_time_solved: Optional[datetime]    

@@ -1,3 +1,4 @@
+from datetime import datetime
 from pickletools import int4
 from typing import Optional
 from pydantic import BaseModel,conlist
@@ -81,6 +82,11 @@ class Answer(BaseModel):
 class AnswerSheet(BaseModel):
     quiz_id: int
     answers: Optional[list[Answer]]
+
+
+class QuizWithTime(BaseModel):
+    quiz_id:int
+    last_time_solved: datetime
 
 
    
