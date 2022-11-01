@@ -46,3 +46,5 @@ aioredis==2.0.1
 redis-om
 aiofiles
 pytest
+httpx
+trio
