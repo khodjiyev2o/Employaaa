@@ -45,3 +45,4 @@ websockets==10.3
 aioredis==2.0.1
 redis-om
 aiofiles
+pytest

@@ -33,7 +33,7 @@ router = APIRouter(
 
 @router.get("/all-quizzes/", response_model=company_schemas.Company)
 async def get_all_quizzes_for_company_id(id:int,company_id:int,skip: int = 0, limit: int = 100,current_user_email=Depends(auth_handler.get_current_user))->company_schemas.Company:
-    crud = Quiz_Crud(get_db)    
+    crud = Quiz_Crud(db=get_db)    
     admin = await User_Crud(db=get_db).checking_for_admin(company_id=company_id,current_user_email=current_user_email)
     if admin is True:
         company = await crud.get_all_quizzes_for_company_id(id=id,skip=skip, limit=limit)
@@ -42,7 +42,7 @@ async def get_all_quizzes_for_company_id(id:int,company_id:int,skip: int = 0, li
 
 @router.post("/create/",response_model=quiz_schemas.QuizCreate)
 async def create_quiz(quiz: quiz_schemas.QuizCreate,company_id:int,current_user_email=Depends(auth_handler.get_current_user))->quiz_schemas.Quiz:
-    quiz_crud = Quiz_Crud(get_db)
+    quiz_crud = Quiz_Crud(db=get_db)
     admin = await User_Crud(db=get_db).checking_for_admin(company_id=company_id,current_user_email=current_user_email)
     if admin is True:
         quiz = await quiz_crud.create_quiz(quiz=quiz)
@@ -50,7 +50,7 @@ async def create_quiz(quiz: quiz_schemas.QuizCreate,company_id:int,current_user_
 
 @router.post("/create/question",response_model=quiz_schemas.Question)
 async def create_question(question: quiz_schemas.QuestionCreate,company_id:int,current_user_email=Depends(auth_handler.get_current_user))->quiz_schemas.Quiz:
-    quiz_crud = Quiz_Crud(get_db)
+    quiz_crud = Quiz_Crud(db=get_db)
     admin = await User_Crud(db=get_db).checking_for_admin(company_id=company_id,current_user_email=current_user_email)
     if admin is True:
         question = await quiz_crud.create_question(question=question)
@@ -58,14 +58,14 @@ async def create_question(question: quiz_schemas.QuestionCreate,company_id:int,c
 
 @router.get("/get/{id}",response_model=quiz_schemas.QuizOut)
 async def get_quiz_by_id(id:int)->quiz_schemas.QuizOut:
-    quiz_crud = Quiz_Crud(get_db)
+    quiz_crud = Quiz_Crud(db=get_db)
     quiz = await quiz_crud.get_quiz_by_id(id=id)
     return quiz
 
 
 @router.delete("/delete/quiz/{id}",status_code=200)
 async def delete_quiz(id: int,company_id:int,current_user_email=Depends(auth_handler.get_current_user))->HTTPException:
-    crud = Quiz_Crud(get_db)
+    crud = Quiz_Crud(db=get_db)
     admin = await User_Crud(db=get_db).checking_for_admin(company_id=company_id,current_user_email=current_user_email)
     if admin is True:
         return await crud.delete_quiz(id=id)
@@ -73,7 +73,7 @@ async def delete_quiz(id: int,company_id:int,current_user_email=Depends(auth_han
 
 @router.delete("/delete/question/{id}",status_code=200)
 async def delete_question(id: int,company_id:int,current_user_email=Depends(auth_handler.get_current_user))->HTTPException:
-    crud = Quiz_Crud(get_db)
+    crud = Quiz_Crud(db=get_db)
     admin = await User_Crud(db=get_db).checking_for_admin(company_id=company_id,current_user_email=current_user_email)
     if admin is True:
         return await crud.delete_question(id=id)

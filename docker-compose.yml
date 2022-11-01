@@ -40,6 +40,8 @@ services:
       - db
     ports:
       - ${APP_PORT}:${CONTAINER_PORT}
+    env_file:
+      - .env
     restart: unless-stopped
     container_name: api
     networks:
