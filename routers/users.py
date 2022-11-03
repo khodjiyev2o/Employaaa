@@ -45,7 +45,7 @@ async def get_user_mean_result_from_each_quiz(user_id:int):
     return results 
 
 @router.get("/all/", response_model=List[schemas.User])
-async def get_all_users(skip: int = 0, limit: int = 100,user_email=Depends(auth_handler.auth_wrapper))->List[schemas.User]:
+async def get_all_users(skip: int = 0, limit: int = 100)->List[schemas.User]:
     crud = Crud(db=get_db)
     return await crud.get_all_users(skip=skip, limit=limit)
 

@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 import os
 from sqlalchemy.orm import sessionmaker
 import aioredis
-
+from contextlib import asynccontextmanager
 
 
 load_dotenv()
@@ -22,7 +22,11 @@ engine = create_engine(
 )
 
 
+
+
 SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False,)
+
+
 
 
 def get_db():
