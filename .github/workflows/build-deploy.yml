@@ -6,6 +6,7 @@ jobs:
     build:
       env:
         DATABASE_URL: ${{secrets.DATABASE_URL}}
+        REDIS_URL: ${{secrets.REDIS_URL}}
       runs-on: ubuntu-latest
       steps:
         - name: pulling git repo
