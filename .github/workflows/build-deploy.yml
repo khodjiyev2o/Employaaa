@@ -60,7 +60,7 @@ jobs:
           run: |
               echo ${{ secrets.EC2_SSH_KEY }} >> $HOME/key.pem
               chmod 400 $HOME/key.pem
-          name: Deploy to Server 
+        - name: Deploy to Server 
           uses: easingthemes/ssh-deploy@main
           env:
               SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
