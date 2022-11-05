@@ -51,10 +51,22 @@ jobs:
             cache-to: type=local,dest=/tmp/.buildx-cache
         - name: Image digest
           run: echo ${{ steps.docker_build.outputs.digest }}
-          
+
     deployment:
       runs-on: ubuntu-latest
       needs: [build]
       steps:
+        - name: Setup key
+          id: setup-key
+          env:
+            EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
+          run: |
+            echo "$EC2_SSH_KEY" >> $HOME/key.pem
+            chmod 400 $HOME/key.pem
         - name: pulling git repo
           run: echo "Starting deployment"
+        - name: Let's see our ssh secret key
+          run: echo "$EC2_SSH_KEY"
+        - name: Connecting  to  server
+          run: ssh -i $HOME/key.pem ${{secrets.PROD_USERNAME}}@${{secrets.PROD_HOST}}
+          
