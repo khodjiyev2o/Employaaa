@@ -17,9 +17,7 @@ async def test_root(client:AsyncClient):
 
 @pytest.mark.anyio
 async def test_token(client:AsyncClient):
-    print(user.email)
-    token = authhandler.encode_token(str(user.email))
-    print(token)
+    token = authhandler.encode_token(email=user.email)
     token_email = authhandler.decode_token(token)
     assert token_email == user.email
     
