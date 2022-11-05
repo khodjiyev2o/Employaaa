@@ -61,12 +61,12 @@ jobs:
           env:
             EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
           run: |
-            echo "$EC2_SSH_KEY" >> $HOME/key.pem
+            echo "${{env.EC2_SSH_KEY}}" >> $HOME/key.pem
             chmod 400 $HOME/key.pem
         - name: pulling git repo
           run: echo "Starting deployment"
         - name: Let's see our ssh secret key
-          run: echo "$EC2_SSH_KEY"
+          run:  echo "${{env.EC2_SSH_KEY}}"
         - name: Connecting  to  server
           run: ssh -i $HOME/key.pem ${{secrets.PROD_USERNAME}}@${{secrets.PROD_HOST}}
           
