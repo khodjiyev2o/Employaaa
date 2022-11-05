@@ -4,6 +4,8 @@ on: [push, pull_request]
 
 jobs:
     build:
+      env:
+        DATABASE_HOSTNAME: ${{secrets.DATABASE_URL}}
       runs-on: ubuntu-latest
       steps:
         - name: pulling git repo
