@@ -14,7 +14,7 @@ from contextlib import asynccontextmanager
 @pytest.fixture(scope="session")
 async def client(): 
     async with AsyncClient(
-        app=app,
+        app=app,    
         base_url="http://localhost:8080",
         headers={'Content-Type': 'application/json'
           }) as client:

@@ -13,7 +13,7 @@ load_dotenv()
 metadata = sqlalchemy.MetaData()
 
 
-DATABASE_URL = os.environ.get("DATABASE_URL")
+DATABASE_URL = os.environ.get('DATABASE_URL')
 
 database = databases.Database(DATABASE_URL)
 
