@@ -5,7 +5,7 @@ on: [push, pull_request]
 jobs:
     build:
       env:
-        DATABASE_HOSTNAME: ${{secrets.DATABASE_URL}}
+        DATABASE_URL: ${{secrets.DATABASE_URL}}
       runs-on: ubuntu-latest
       steps:
         - name: pulling git repo
@@ -16,7 +16,7 @@ jobs:
             python-version: "3.9"
         - name: update pip
           run: python -m pip install --upgrade pip
-        - name: install all dependencies
+        - name: install all dependenScies
           run: pip install -r requirements.txt
         - name: test with pytest
           run: |
