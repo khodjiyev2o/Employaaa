@@ -57,14 +57,13 @@ jobs:
       needs: [build]
       steps:
         - name: Setup key
-          id: setup-key
           run: |
             echo ${{ secrets.EC2_SSH_KEY }} >> $HOME/key.pem
             chmod 400 $HOME/key.pem
-        - name: pulling git repo
-          run: echo "Starting deployment"
-        - name: Let's see our ssh secret key
-          run:  echo ${{ secrets.EC2_SSH_KEY }}
-        - name: Connecting  to  server
-          run: ssh -i $HOME/key.pem ${{secrets.PROD_USERNAME}}@${{secrets.PROD_HOST}}
-          
+       name: Deploy to Server 
+       uses: easingthemes/ssh-deploy@main
+       env:
+          SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
+          REMOTE_HOST: ${{ secrets.PROD_HOST }}
+          REMOTE_USER: ${{ secrets.PROD_USERNAME }}
+            
