@@ -74,4 +74,4 @@ jobs:
         - name: Docker run
           run: |
             docker stop ${{ env.NAME }} && docker rm ${{ env.NAME }} && docker rmi ${{ env.DOCKER_IMAGE }}:latest
-            docker run -dp 80:8000 --env DATABASE_URL=${{ env.DATABASE_URL }} --env REDIS_URL=${{env.REDIS_URL}}} -env SECRET=${{env.SECRET}} --name intern --restart always ${{ env.DOCKER_IMAGE }}:latest
+            docker run -dp 80:8000 --env DATABASE_URL=${{ env.DATABASE_URL }} --env REDIS_URL=${{env.REDIS_URL}} -env SECRET=${{env.SECRET}} --name intern --restart always ${{ env.DOCKER_IMAGE }}:latest
