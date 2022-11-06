@@ -12,7 +12,7 @@ authhandler = AuthHandler()
 async def test_root(client:AsyncClient):
     response = await client.get("/")
     assert response.status_code == 200
-    assert response.json() == {"status": "working"}
+    assert response.json() == {"status": "working from ci/cd"}
 
 
 @pytest.mark.anyio
