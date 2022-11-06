@@ -35,4 +35,4 @@ async def shutdown():
 
 @app.get("/")
 async def health_check():
-    return {"status": "working"}
+    return {"status": "working from ci/cd"}
