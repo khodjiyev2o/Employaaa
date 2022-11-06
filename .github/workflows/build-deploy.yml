@@ -60,7 +60,7 @@ jobs:
             tags: ${{ env.DOCKER_IMAGE }}:latest
     #  Job
     deploy:
-      needs: cd  # build 
+      needs: build  # build 
       name: Deploy
       runs-on: [ self-hosted, label-go ] # AWS ./configure
       steps:
