@@ -70,8 +70,8 @@ jobs:
             registry: ghcr.io
             username: ${{ github.actor }}
             password: ${{ secrets.GHCR_TOKEN }}
-        # 8080 -> 80 
+        # 8000 -> 80 
         - name: Docker run
           run: |
             docker stop ${{ env.NAME }} && docker rm ${{ env.NAME }} && docker rmi ${{ env.DOCKER_IMAGE }}:latest
-            docker run -d -p 80:8080 --name intern --restart always ${{ env.DOCKER_IMAGE }}:latest
+            docker run -d -p 80:8000 --name intern --restart always ${{ env.DOCKER_IMAGE }}:latest
