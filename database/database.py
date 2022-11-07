@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 import os
 from sqlalchemy.orm import sessionmaker
 import aioredis
-
+from contextlib import asynccontextmanager
 
 
 load_dotenv()
@@ -13,7 +13,7 @@ load_dotenv()
 metadata = sqlalchemy.MetaData()
 
 
-DATABASE_URL = os.environ.get("DATABASE_URL")
+DATABASE_URL = os.environ.get('DATABASE_URL')
 
 database = databases.Database(DATABASE_URL)
 
@@ -22,7 +22,11 @@ engine = create_engine(
 )
 
 
+
+
 SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False,)
+
+
 
 
 def get_db():
