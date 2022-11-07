@@ -40,7 +40,7 @@ async def get_all_quizzes_for_company_id(id:int,company_id:int,skip: int = 0, li
         return company
 
 
-@router.post("/create/",response_model=quiz_schemas.QuizCreate)
+@router.post("/create/",response_model=quiz_schemas.Quiz)
 async def create_quiz(quiz: quiz_schemas.QuizCreate,company_id:int,current_user_email=Depends(auth_handler.get_current_user))->quiz_schemas.Quiz:
     quiz_crud = Quiz_Crud(db=get_db)
     admin = await User_Crud(db=get_db).checking_for_admin(company_id=company_id,current_user_email=current_user_email)
